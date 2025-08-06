@@ -5,6 +5,7 @@ Loads and parses concatenated JSON data for analysis.
 """
 
 import json
+import numpy as np
 from typing import Dict, List, Any, Union
 from pathlib import Path
 from loguru import logger
@@ -13,7 +14,7 @@ from loguru import logger
 class DataLoader:
     """Load and parse concatenated JSON data"""
     
-    def __init__(self, data_path: str = "concatenated_data/concatenated_data.json"):
+    def __init__(self, data_path: str = "data/concatenated_data/concatenated_data.json"):
         """
         Initialize the data loader.
         
@@ -126,149 +127,256 @@ class DataLoader:
             logger.info(f"Extracting questions from keyframe {i}")
             qa_pairs = self.extract_questions_from_keyframe(scene_id, i)
             all_qa_pairs[self._assign_keyframe_token(scene_id, i)] = qa_pairs
-        return all_qa_pairs
-    def extract_objects(self, scene_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        return all_qa_pairs   
+    def extract_ego_movement_data(self, scene_id: Union[int, str]) -> Dict[str, Any]:
         """
-        Extract object detection data from scene keyframes.
+        Extract comprehensive ego vehicle movement data for analysis.
         
         Args:
-            scene_data: Scene data dictionary
+            scene_id: Scene identifier (int or str)
             
         Returns:
-            List of object dictionaries with metadata
-        """
-        objects = []
-        
-        if 'key_frames' not in scene_data:
-            return objects
-        
-        for frame_token, frame_data in scene_data['key_frames'].items():
-            if 'key_object_infos' in frame_data:
-                for object_id, object_info in frame_data['key_object_infos'].items():
-                    object_data = {
-                        'scene_token': scene_data['scene_token'],
-                        'scene_name': scene_data['scene_name'],
-                        'frame_token': frame_token,
-                        'object_id': object_id,
-                        'category': object_info.get('Category', ''),
-                        'status': object_info.get('Status'),
-                        'visual_description': object_info.get('Visual_description', ''),
-                        'bbox_2d': object_info.get('2d_bbox', [])
-                    }
-                    objects.append(object_data)
-        
-        return objects
-    
-    def extract_spatial_data(self, scene_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Extract spatial relationship data from scene.
-        
-        Args:
-            scene_data: Scene data dictionary
-            
-        Returns:
-            List of spatial relationship dictionaries
-        """
-        spatial_data = []
-        
-        # Extract spatial information from object positions and relationships
-        objects = self.extract_objects(scene_data)
-        
-        for obj in objects:
-            if obj['bbox_2d']:
-                spatial_info = {
-                    'scene_token': obj['scene_token'],
-                    'frame_token': obj['frame_token'],
-                    'object_id': obj['object_id'],
-                    'category': obj['category'],
-                    'position': {
-                        'x': obj['bbox_2d'][0] if len(obj['bbox_2d']) >= 1 else None,
-                        'y': obj['bbox_2d'][1] if len(obj['bbox_2d']) >= 2 else None,
-                        'width': obj['bbox_2d'][2] - obj['bbox_2d'][0] if len(obj['bbox_2d']) >= 3 else None,
-                        'height': obj['bbox_2d'][3] - obj['bbox_2d'][1] if len(obj['bbox_2d']) >= 4 else None
-                    }
+            Dictionary containing ego movement data with the following structure:
+            {
+                'scene_info': {
+                    'scene_name': str,
+                    'scene_description': str,
+                    'nbr_samples': int
+                },
+                'movement_data': [
+                    {
+                        'timestamp': int,
+                        'position': [x, y, z],
+                        'rotation': [w, x, y, z],
+                        'heading': float,
+                        'velocity': [vx, vy, vz],
+                        'speed': float,
+                        'acceleration': [ax, ay, az],
+                        'angular_velocity': float,
+                        'curvature': float
+                    },
+                    ...
+                ],
+                'summary_stats': {
+                    'total_distance': float,
+                    'avg_speed': float,
+                    'max_speed': float,
+                    'turning_segments': list,
+                    'straight_segments': list,
+                    'stopping_periods': list
                 }
-                spatial_data.append(spatial_info)
-        
-        return spatial_data
-    
-    def extract_temporal_data(self, scene_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Extract temporal sequence data from scene.
-        
-        Args:
-            scene_data: Scene data dictionary
-            
-        Returns:
-            List of temporal sequence dictionaries
-        """
-        temporal_data = []
-        
-        if 'key_frames' not in scene_data:
-            return temporal_data
-        
-        frame_tokens = list(scene_data['key_frames'].keys())
-        
-        for i, frame_token in enumerate(frame_tokens):
-            frame_data = scene_data['key_frames'][frame_token]
-            temporal_info = {
-                'scene_token': scene_data['scene_token'],
-                'scene_name': scene_data['scene_name'],
-                'frame_token': frame_token,
-                'frame_index': i,
-                'total_frames': len(frame_tokens),
-                'has_qa': 'QA' in frame_data,
-                'has_objects': 'key_object_infos' in frame_data,
-                'qa_types': list(frame_data.get('QA', {}).keys()) if 'QA' in frame_data else []
             }
-            temporal_data.append(temporal_info)
-        
-        return temporal_data
-    
-    def get_available_files(self) -> List[str]:
-        """
-        Get list of available scene tokens.
-        
-        Returns:
-            List of scene token strings
         """
         try:
-            with open(self.data_path, 'r') as f:
-                data = json.load(f)
+            scene_data = self.load_scene_data(scene_id)
+            samples = scene_data['samples']
             
-            return list(data.keys())
+            # Extract basic scene info
+            scene_info = {
+                'scene_name': scene_data['scene_name'],
+                'scene_description': scene_data['scene_description'],
+                'nbr_samples': scene_data['nbr_samples']
+            }
             
-        except FileNotFoundError:
-            logger.error(f"Data file not found at {self.data_path}")
-            return []
-        except json.JSONDecodeError:
-            logger.error(f"Invalid JSON format in {self.data_path}")
-            return []
+            # Extract movement data from samples
+            movement_data = []
+            timestamps = []
+            positions = []
+            rotations = []
+            
+            # Sort samples by timestamp to ensure chronological order
+            sorted_samples = sorted(samples.items(), key=lambda x: x[1]['timestamp'])
+            
+            for sample_token, sample_data in sorted_samples:
+                ego_pose = sample_data['ego_pose']
+                
+                # Extract basic pose data
+                timestamp = ego_pose['timestamp']
+                position = ego_pose['translation']
+                rotation = ego_pose['rotation']
+                
+                # Calculate heading from quaternion
+                heading = self._quaternion_to_heading(rotation)
+                
+                # Store for velocity calculations
+                timestamps.append(timestamp)
+                positions.append(position)
+                rotations.append(rotation)
+                
+                # Initialize movement data entry
+                movement_entry = {
+                    'timestamp': timestamp,
+                    'position': position,
+                    'rotation': rotation,
+                    'heading': heading,
+                    'velocity': [0, 0, 0],  # Will be calculated
+                    'speed': 0.0,
+                    'acceleration': [0, 0, 0],  # Will be calculated
+                    'angular_velocity': 0.0,
+                    'curvature': 0.0
+                }
+                
+                movement_data.append(movement_entry)
+            
+            # Calculate derived metrics
+            self._calculate_velocity_and_acceleration(movement_data, timestamps)
+            self._calculate_curvature(movement_data)
+            
+            # Calculate summary statistics
+            summary_stats = self._calculate_movement_summary(movement_data)
+            
+            return {
+                'scene_info': scene_info,
+                'movement_data': movement_data,
+                'summary_stats': summary_stats
+            }
+            
         except Exception as e:
-            logger.error(f"Error reading data: {e}")
-            return []
-    
-    def get_scene_info(self, scene_identifier: str) -> Dict[str, Any]:
+            logger.error(f"Error extracting ego movement data: {e}")
+            return {}
+    def _quaternion_to_heading(self, quaternion: List[float]) -> float:
         """
-        Get basic scene information.
+        Convert quaternion to heading angle in radians.
         
         Args:
-            scene_identifier: Scene token or serial number
+            quaternion: [w, x, y, z] quaternion
             
         Returns:
-            Scene information dictionary
+            Heading angle in radians
         """
-        scene_data = self.load_scene_data(scene_identifier)
+        w, x, y, z = quaternion
+        # Extract yaw from quaternion
+        yaw = np.arctan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
+        return yaw
+    def _calculate_velocity_and_acceleration(self, movement_data: List[Dict], timestamps: List[int]):
+        """
+        Calculate velocity and acceleration for movement data.
         
-        if not scene_data:
+        Args:
+            movement_data: List of movement data dictionaries
+            timestamps: List of timestamps
+        """
+        for i in range(1, len(movement_data)):
+            # Time difference in seconds (timestamps are in microseconds)
+            dt = (timestamps[i] - timestamps[i-1]) / 1e6
+            
+            if dt > 0:
+                # Calculate velocity
+                pos_curr = np.array(movement_data[i]['position'])
+                pos_prev = np.array(movement_data[i-1]['position'])
+                velocity = (pos_curr - pos_prev) / dt
+                
+                movement_data[i]['velocity'] = velocity.tolist()
+                movement_data[i]['speed'] = np.linalg.norm(velocity)
+                
+                # Calculate acceleration (if we have previous velocity)
+                if i > 1:
+                    vel_prev = np.array(movement_data[i-1]['velocity'])
+                    acceleration = (velocity - vel_prev) / dt
+                    movement_data[i]['acceleration'] = acceleration.tolist()
+                
+                # Calculate angular velocity
+                heading_curr = movement_data[i]['heading']
+                heading_prev = movement_data[i-1]['heading']
+                angular_velocity = (heading_curr - heading_prev) / dt
+                movement_data[i]['angular_velocity'] = angular_velocity
+    def _calculate_curvature(self, movement_data: List[Dict]):
+        """
+        Calculate trajectory curvature for movement data.
+        
+        Args:
+            movement_data: List of movement data dictionaries
+        """
+        for i in range(1, len(movement_data) - 1):
+            # Get three consecutive points
+            pos_prev = np.array(movement_data[i-1]['position'][:2])  # Use only x,y
+            pos_curr = np.array(movement_data[i]['position'][:2])
+            pos_next = np.array(movement_data[i+1]['position'][:2])
+            
+            # Calculate curvature using three-point method
+            if np.linalg.norm(pos_next - pos_prev) > 0:
+                # Vector from prev to curr
+                v1 = pos_curr - pos_prev
+                # Vector from curr to next
+                v2 = pos_next - pos_curr
+                
+                # Cross product magnitude
+                cross_mag = abs(v1[0] * v2[1] - v1[1] * v2[0])
+                
+                # Curvature = cross_mag / (|v1| * |v2| * |v1 + v2|)
+                v1_mag = np.linalg.norm(v1)
+                v2_mag = np.linalg.norm(v2)
+                v_sum_mag = np.linalg.norm(v1 + v2)
+                
+                if v1_mag * v2_mag * v_sum_mag > 0:
+                    curvature = cross_mag / (v1_mag * v2_mag * v_sum_mag)
+                    movement_data[i]['curvature'] = curvature
+    def _calculate_movement_summary(self, movement_data: List[Dict]) -> Dict[str, Any]:
+        """
+        Calculate summary statistics for movement data.
+        
+        Args:
+            movement_data: List of movement data dictionaries
+            
+        Returns:
+            Dictionary with summary statistics
+        """
+        if not movement_data:
             return {}
         
+        speeds = [entry['speed'] for entry in movement_data if entry['speed'] > 0]
+        curvatures = [entry['curvature'] for entry in movement_data if entry['curvature'] > 0]
+        
+        # Calculate total distance
+        total_distance = 0
+        for i in range(1, len(movement_data)):
+            pos_curr = np.array(movement_data[i]['position'])
+            pos_prev = np.array(movement_data[i-1]['position'])
+            total_distance += np.linalg.norm(pos_curr - pos_prev)
+        
+        # Identify movement segments
+        turning_segments = []
+        straight_segments = []
+        stopping_periods = []
+        
+        # Simple threshold-based segmentation
+        curvature_threshold = 0.01
+        speed_threshold = 0.5  # m/s
+        
+        current_segment_start = 0
+        current_segment_type = None
+        
+        for i, entry in enumerate(movement_data):
+            if entry['curvature'] > curvature_threshold:
+                segment_type = 'turning'
+            elif entry['speed'] < speed_threshold:
+                segment_type = 'stopping'
+            else:
+                segment_type = 'straight'
+            
+            if segment_type != current_segment_type:
+                # End current segment
+                if current_segment_type == 'turning':
+                    turning_segments.append((current_segment_start, i-1))
+                elif current_segment_type == 'straight':
+                    straight_segments.append((current_segment_start, i-1))
+                elif current_segment_type == 'stopping':
+                    stopping_periods.append((current_segment_start, i-1))
+                
+                # Start new segment
+                current_segment_start = i
+                current_segment_type = segment_type
+        
         return {
-            'scene_token': scene_data.get('scene_token'),
-            'scene_name': scene_data.get('scene_name'),
-            'scene_description': scene_data.get('scene_description'),
-            'nbr_samples': scene_data.get('nbr_samples'),
-            'nbr_keyframes': len(scene_data.get('key_frames', {})),
-            'first_sample_token': scene_data.get('first_sample_token'),
-            'last_sample_token': scene_data.get('last_sample_token')
-        } 
+            'total_distance': total_distance,
+            'avg_speed': np.mean(speeds) if speeds else 0.0,
+            'max_speed': np.max(speeds) if speeds else 0.0,
+            'min_speed': np.min(speeds) if speeds else 0.0,
+            'avg_curvature': np.mean(curvatures) if curvatures else 0.0,
+            'max_curvature': np.max(curvatures) if curvatures else 0.0,
+            'turning_segments': turning_segments,
+            'straight_segments': straight_segments,
+            'stopping_periods': stopping_periods,
+            'total_duration': (movement_data[-1]['timestamp'] - movement_data[0]['timestamp']) / 1e6  # seconds
+        }
+    
