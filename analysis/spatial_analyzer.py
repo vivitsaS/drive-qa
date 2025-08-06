@@ -4,8 +4,7 @@ Spatial Analyzer for DriveLM Dataset
 Analyzes spatial relationships and positioning patterns.
 """
 
-from typing import Dict, List, Any, Optional
-import pandas as pd
+from typing import Dict, List, Any
 
 
 class SpatialAnalyzer:

@@ -2,7 +2,6 @@
 
 import json
 import cv2
-import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
@@ -32,7 +31,7 @@ def draw_bboxes_on_image(image_path, key_object_infos, camera_name):
             if camera_name == camera_from_tag:
                 bbox = obj_info["2d_bbox"]  # [x_min, y_min, x_max, y_max]
                 category = obj_info["Category"]
-                status = obj_info["Status"]
+                # status = obj_info["Status"]  # Unused variable
                 description = obj_info["Visual_description"]
                 
                 print(f"Drawing box for {c_tag}: {category} - {description}")

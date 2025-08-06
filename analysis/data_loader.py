@@ -5,7 +5,7 @@ Loads and parses concatenated JSON data for analysis.
 """
 
 import json
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Union
 from pathlib import Path
 from loguru import logger
 
@@ -61,7 +61,6 @@ class DataLoader:
         except Exception as e:
             logger.error(f"Error assigning scene token: {e}")
             raise ValueError(f"Invalid scene_id: {scene_id}")
-    
     def load_scene_data(self, scene_identifier: str) -> Dict[str, Any]:
         """
         Load scene data from JSON by scene token or serial number.
@@ -75,7 +74,6 @@ class DataLoader:
         scene_token = self._assign_scene_token(scene_identifier)
         scene_data = self.load_all_data()[scene_token]
         return scene_data
-    
     def load_all_data(self) -> Dict[str, Any]:
         """
         Load all available scene data.
@@ -91,7 +89,6 @@ class DataLoader:
             logger.error(f"Error loading data: {e}")
             return {}
         return data
-    
     def _assign_keyframe_token(self, scene_token: str, keyframe_id: Union[int, str]) -> str:
         """
         Assign keyframe token to the keyframe id.
@@ -115,7 +112,6 @@ class DataLoader:
         except Exception as e:
             logger.error(f"Error assigning keyframe token: {e}")
             raise ValueError(f"Invalid keyframe_id: {keyframe_id}")
-    
     def extract_questions_from_keyframe(self, scene_id: int, keyframe_id: int) -> List[Dict[str, Any]]:
         """Extract all questions from given keyframe"""
         scene_data = self.load_scene_data(scene_id)
@@ -131,21 +127,6 @@ class DataLoader:
             qa_pairs = self.extract_questions_from_keyframe(scene_id, i)
             all_qa_pairs[self._assign_keyframe_token(scene_id, i)] = qa_pairs
         return all_qa_pairs
-
-
-    def extract_questions_from_scene(self, scene_id: int) -> List[Dict[str, Any]]:
-        """
-        Extract all questions from scene.
-        
-        Args:
-            scene_id: Scene ID
-            
-        Returns:
-            List of question dictionaries with metadata
-        """
-        scene_data = self.load_scene_data(scene_id)
-        return self.extract_questions_from_keyframe(scene_id, 0)
-    
     def extract_objects(self, scene_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Extract object detection data from scene keyframes.

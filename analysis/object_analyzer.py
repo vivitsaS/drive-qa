@@ -4,8 +4,7 @@ Object Analyzer for DriveLM Dataset
 Analyzes object detection patterns and distributions.
 """
 
-from typing import Dict, List, Any, Optional
-import pandas as pd
+from typing import Dict, List, Any
 
 
 class ObjectAnalyzer:

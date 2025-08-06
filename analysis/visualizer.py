@@ -4,13 +4,12 @@ Analysis Visualizer for DriveLM Dataset
 Creates charts, dashboards, and visualizations for analysis results.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any
 # import matplotlib.pyplot as plt
 # import seaborn as sns
 # import plotly.express as px
 # import plotly.graph_objects as go
 # from plotly.subplots import make_subplots
-import pandas as pd
 
 
 class AnalysisVisualizer:

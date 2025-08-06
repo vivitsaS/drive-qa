@@ -4,15 +4,15 @@ Main Analysis Script for DriveLM Dataset
 Runs comprehensive analysis pipeline and generates reports.
 """
 
-import sys
-import os
-from pathlib import Path
+# import sys  
+# from pathlib import Path
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-sys.path.append(str(project_root))
+# # Add project root to path
+# project_root = Path(__file__).parent.parent
+# sys.path.append(str(project_root))
 
-from analysis.data_loader import DriveLMDataLoader
+# Import after path setup
+from analysis.data_loader import DataLoader
 from analysis.question_analyzer import QuestionAnalyzer
 from analysis.object_analyzer import ObjectAnalyzer
 from analysis.spatial_analyzer import SpatialAnalyzer
@@ -28,8 +28,9 @@ def main():
     
     # 1. Load all data
     print("Loading data...")
-    loader = DriveLMDataLoader()
-    all_data = loader.load_all_data()
+    loader = DataLoader()
+    # Remove unused variable assignment
+    loader.load_all_data()
     
     # 2. Initialize analyzers
     print("Initializing analyzers...")

@@ -5,9 +5,7 @@ Analyzes relationships between text/structured data and image data
 for RAG pipeline optimization.
 """
 
-from typing import Dict, List, Any, Optional, Tuple
-import pandas as pd
-import numpy as np
+from typing import Dict, List, Any
 
 
 class MultimodalAnalyzer:

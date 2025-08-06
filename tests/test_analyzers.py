@@ -5,15 +5,8 @@ Tests the various analyzer classes.
 """
 
 import unittest
-from unittest.mock import Mock, patch
-import sys
-import os
-from pathlib import Path
 
-# Add project root to path
-project_root = Path(__file__).parent.parent.parent
-sys.path.append(str(project_root))
-
+# Import after path setup
 from analysis.question_analyzer import QuestionAnalyzer
 from analysis.object_analyzer import ObjectAnalyzer
 from analysis.spatial_analyzer import SpatialAnalyzer

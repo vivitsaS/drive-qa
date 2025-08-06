@@ -4,8 +4,7 @@ Question Analyzer for DriveLM Dataset
 Analyzes question types, patterns, and requirements for RAG pipeline.
 """
 
-from typing import Dict, List, Any, Optional
-import pandas as pd
+from typing import Dict, List, Any
 
 
 class QuestionAnalyzer:

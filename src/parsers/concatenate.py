@@ -8,9 +8,8 @@ to create a unified data structure with all necessary fields.
 
 import json
 import os
-import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict
 import logging
 
 # Set up logging

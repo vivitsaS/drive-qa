@@ -4,8 +4,7 @@ Temporal Analyzer for DriveLM Dataset
 Analyzes temporal patterns and sequence dependencies.
 """
 
-from typing import Dict, List, Any, Optional
-import pandas as pd
+from typing import Dict, List, Any
 
 
 class TemporalAnalyzer:

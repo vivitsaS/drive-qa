@@ -4,8 +4,7 @@ Safety Analyzer for DriveLM Dataset
 Analyzes safety-critical patterns and risk assessment.
 """
 
-from typing import Dict, List, Any, Optional
-import pandas as pd
+from typing import Dict, List, Any
 
 
 class SafetyAnalyzer:
