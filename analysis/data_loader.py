@@ -90,13 +90,23 @@ class DataLoader:
             logger.error(f"Error loading data: {e}")
             return {}
         return data
-    def _assign_keyframe_token(self, scene_token: str, keyframe_id: Union[int, str]) -> str:
+    def _assign_keyframe_token(self, scene_id: Union[int, str], keyframe_id: Union[int, str]) -> str:
         """
         Assign keyframe token to the keyframe id.
+        
+        Args:
+            scene_id: Scene identifier (int or str)
+            keyframe_id: Keyframe identifier (int or str)
+            
+        Returns:
+            Keyframe token string
+            
+        Raises:
+            ValueError: If keyframe_id is invalid or not found
         """
-        # keyframe_id to keyframe_token map
         try:
-            keyframe_tokens = list(self.load_scene_data(scene_token)['key_frames'].keys())
+            scene_data = self.load_scene_data(scene_id)
+            keyframe_tokens = list(scene_data['key_frames'].keys())
             keyframe_serial_numbers = list(range(1, len(keyframe_tokens) + 1))  
             serial_number_to_keyframe_token_map = dict(zip(keyframe_serial_numbers, keyframe_tokens))
             
@@ -104,30 +114,134 @@ class DataLoader:
                 if keyframe_id in serial_number_to_keyframe_token_map:
                     return serial_number_to_keyframe_token_map[keyframe_id]
                 else:
-                    raise ValueError(f"Keyframe ID {keyframe_id} not found in the data, make sure the number is between 1 and {len(keyframe_tokens)}")
-            if isinstance(keyframe_id, str):
+                    raise ValueError(f"Keyframe ID {keyframe_id} not found. Valid range: 1 to {len(keyframe_tokens)}")
+            elif isinstance(keyframe_id, str):
                 if keyframe_id in keyframe_tokens:
                     return keyframe_id
                 else:
-                    raise ValueError(f"Keyframe ID {keyframe_id} not found in the data, make sure the keyframe token is valid")
+                    raise ValueError(f"Keyframe token '{keyframe_id}' not found in scene data")
+            else:
+                raise ValueError(f"Invalid keyframe_id type: {type(keyframe_id)}. Expected int or str")
+                
+        except ValueError:
+            # Re-raise ValueError as-is
+            raise
         except Exception as e:
             logger.error(f"Error assigning keyframe token: {e}")
-            raise ValueError(f"Invalid keyframe_id: {keyframe_id}")
+            raise ValueError(f"Failed to assign keyframe token for scene {scene_id}, keyframe {keyframe_id}: {e}")
     def extract_questions_from_keyframe(self, scene_id: int, keyframe_id: int) -> List[Dict[str, Any]]:
         """Extract all questions from given keyframe"""
         scene_data = self.load_scene_data(scene_id)
         # base case: if keyframe_id is 0, return all questions
         if keyframe_id != 0:
-            logger.info(f"Extracting questions from keyframe {keyframe_id}")
+            # logger.info(f"Extracting questions from keyframe {keyframe_id}")
             qa_pairs = self.load_scene_data(scene_id)["key_frames"][self._assign_keyframe_token(scene_id, keyframe_id)]["QA"]
             return qa_pairs
         
         all_qa_pairs = {}
         for i in range(1, len(scene_data["key_frames"]) + 1):
-            logger.info(f"Extracting questions from keyframe {i}")
+            # logger.info(f"Extracting questions from keyframe {i}")
             qa_pairs = self.extract_questions_from_keyframe(scene_id, i)
             all_qa_pairs[self._assign_keyframe_token(scene_id, i)] = qa_pairs
-        return all_qa_pairs   
+        return all_qa_pairs
+    def get_keyframe_info_for_scene(self, scene_id: Union[int, str]) -> Dict[str, Any]:
+        """
+        Get keyframe info for a specific scene.
+        """
+        info = {"keyframe_tokens": [], "total_keyframes": 0}
+        scene_data = self.load_scene_data(scene_id)
+        for keyframe_id in scene_data["key_frames"]:
+            info["keyframe_tokens"].append(keyframe_id)
+            info["total_keyframes"] += 1
+        return info
+    def get_keyframe_data(self, scene_id: Union[int, str], keyframe_id: Union[int, str]) -> Dict[str, Any]:
+        """
+        Get comprehensive data for a specific keyframe including both nuScenes sample data and DriveLM keyframe data.
+        
+        Args:
+            scene_id: Scene identifier (int or str)
+            keyframe_id: Keyframe identifier (int or str)
+            
+        Returns:
+            Dictionary containing combined keyframe data with the following structure:
+            {
+                'scene_info': {
+                    'scene_name': str,
+                    'scene_description': str,
+                    'scene_token': str,
+                    'keyframe_token': str
+                },
+                'nuScenes_data': {
+                    'timestamp': int,
+                    'sensor_data': {
+                        'CAM_FRONT': {...},
+                        'CAM_BACK': {...},
+                        'LIDAR_TOP': {...},
+                        'RADAR_FRONT': {...},
+                        ...
+                    },
+                    'annotations': [...],
+                    'ego_pose': {...},
+                    'prev': str,
+                    'next': str
+                },
+                'DriveLM_data': {
+                    'QA': {
+                        'perception': [...],
+                        'prediction': [...],
+                        'planning': [...],
+                        'behavior': [...]
+                    },
+                    'image_paths': {
+                        'CAM_FRONT': str,
+                        'CAM_BACK': str,
+                        ...
+                    },
+                    'key_object_infos': {
+                        '<camera,view,x,y>': {
+                            'Category': str,
+                            'Status': str,
+                            'Visual_description': str,
+                            '2d_bbox': [x1, y1, x2, y2]
+                        },
+                        ...
+                    }
+                }
+            }
+        """
+        try:
+            # Get scene data
+            scene_data = self.load_scene_data(scene_id)
+            scene_token = self._assign_scene_token(scene_id)
+            keyframe_token = self._assign_keyframe_token(scene_token, keyframe_id)
+            
+            # Extract scene info
+            scene_info = {
+                'scene_name': scene_data['scene_name'],
+                'scene_description': scene_data['scene_description'],
+                'scene_token': scene_token,
+                'keyframe_token': keyframe_token
+            }
+            
+            # Extract nuScenes sample data
+            nuScenes_data = scene_data['samples'][keyframe_token]
+            
+            # Extract DriveLM keyframe data
+            DriveLM_data = scene_data['key_frames'][keyframe_token]
+            
+            # Combine the data
+            combined_data = {
+                'scene_info': scene_info,
+                'nuScenes_data': nuScenes_data,
+                'DriveLM_data': DriveLM_data
+            }
+            
+            # logger.info(f"Successfully loaded keyframe data for scene {scene_id}, keyframe {keyframe_id}")
+            return combined_data
+            
+        except Exception as e:
+            logger.error(f"Error loading keyframe data for scene {scene_id}, keyframe {keyframe_id}: {e}")
+            raise ValueError(f"Failed to load keyframe data: {e}")   
     def extract_ego_movement_data(self, scene_id: Union[int, str]) -> Dict[str, Any]:
         """
         Extract comprehensive ego vehicle movement data for analysis.

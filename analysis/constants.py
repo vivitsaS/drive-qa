@@ -1,0 +1,1 @@
+OBJECT_TYPES = ['vehicle', 'pedestrian', 'bicycle', 'animal', 'traffic_light', 'traffic_sign', 'other']

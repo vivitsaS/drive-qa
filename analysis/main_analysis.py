@@ -11,10 +11,6 @@ from loguru import logger
 
 from .data_loader import DataLoader
 from .vehicle_state_analyzer import VehicleStateAnalyzer
-from .question_distribution_analyzer import QuestionDistributionAnalyzer
-from .object_distribution_analyzer import ObjectDistributionAnalyzer
-from .scenario_analyzer import ScenarioAnalyzer
-from .pattern_analyzer import PatternAnalyzer
 from .dashboard_generator import DashboardGenerator
 
 
@@ -30,10 +26,6 @@ class MainAnalysis:
         """
         self.data_loader = DataLoader(data_path)
         self.vehicle_analyzer = VehicleStateAnalyzer(self.data_loader)
-        self.question_analyzer = QuestionDistributionAnalyzer(self.data_loader)
-        self.object_analyzer = ObjectDistributionAnalyzer(self.data_loader)
-        self.scenario_analyzer = ScenarioAnalyzer(self.data_loader)
-        self.pattern_analyzer = PatternAnalyzer(self.data_loader)
         self.dashboard_generator = DashboardGenerator(self.data_loader)
     
     def run_vehicle_analysis(self) -> Dict[str, Any]:
