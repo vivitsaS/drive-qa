@@ -10,257 +10,178 @@ Analyzes question-answer pairs across different levels:
 from collections import Counter, defaultdict
 import json
 import re
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union, Optional
 
 from loguru import logger
 import numpy as np
 
-from .data_loader import DataLoader
+from .base_analyzer import BaseAnalyzer
 
 
-class QAAnalyzer:
-    """Analyze QA pairs from DriveLM dataset"""
+class QAAnalyzer(BaseAnalyzer):
+    """Analyze QA pairs from DriveLM dataset with optimized data loading"""
     
-    def __init__(self, data_loader: DataLoader = None, scene_id: Union[int, str] = None):
+    def __init__(self, data_loader=None, scene_id: Union[int, str] = None):
         """
         Initialize QA analyzer.
         
         Args:
             data_loader: DataLoader instance, creates new one if None
+            scene_id: Optional scene ID to focus analysis on
         """
-        self.data_loader = data_loader if data_loader else DataLoader()
+        super().__init__(data_loader)
         self.qa_types = ['perception', 'planning', 'prediction', 'behavior']
         self.scene_id = scene_id
     
+    def analyze_scene(self, scene_id: Union[int, str]) -> Dict[str, Any]:
+        """
+        Analyze QA data for a single scene.
+        
+        Args:
+            scene_id: Scene identifier
+            
+        Returns:
+            QA analysis results for the scene
+        """
+        cache_key = f"qa_analysis_scene_{scene_id}"
+        result = self.get_cached_result(cache_key)
+        
+        if result is None:
+            scene_data = self.get_scene_data(scene_id)
+            qa_distribution = self._get_qa_distribution_from_scene_data(scene_data)
+            result = {
+                'scene_id': scene_id,
+                'qa_distribution': qa_distribution,
+                'total_questions': qa_distribution['total']
+            }
+            self.set_cached_result(cache_key, result)
+        
+        return result
+    
+    def analyze_all_scenes(self) -> Dict[str, Any]:
+        """
+        Analyze QA data for all scenes.
+        
+        Returns:
+            QA analysis results for all scenes
+        """
+        cache_key = "qa_analysis_all_scenes"
+        result = self.get_cached_result(cache_key)
+        
+        if result is None:
+            all_scenes_data = self.get_all_scenes_data()
+            
+            scene_results = {}
+            total_distribution = {"total": 0, "perception": 0, "planning": 0, "prediction": 0, "behavior": 0}
+            
+            for scene_id, scene_data in all_scenes_data.items():
+                scene_qa_distribution = self._get_qa_distribution_from_scene_data(scene_data)
+                scene_results[scene_id] = scene_qa_distribution
+                
+                # Accumulate totals
+                for qa_type in self.qa_types:
+                    total_distribution[qa_type] += scene_qa_distribution[qa_type]
+                total_distribution["total"] += scene_qa_distribution["total"]
+            
+            result = {
+                'scene_results': scene_results,
+                'total_distribution': total_distribution,
+                'total_scenes': len(scene_results)
+            }
+            self.set_cached_result(cache_key, result)
+        
+        return result
+    
     def analyze_scenes(self) -> Dict[str, Any]:
         """
-        get all the qa_distribution for all keyframes in a scene.
+        Get all the qa_distribution for all keyframes in a scene with optimized data loading.
         """
-        total_dict = {}
-        for scene_id in range(1, 7):
-            x = self._get_qa_distribution(scene_id, 0)
-            logger.info(f"QA distribution for scene {scene_id}: {x}")
-            total_dict[scene_id] = x
-        total_all_scenes = {}
-        # now we need to get the total for each qa_type.
-        total_all_scenes["total"] = sum(total_dict[scene_id]["total"] for scene_id in total_dict)
-        total_all_scenes["perception"] = sum(total_dict[scene_id]["perception"] for scene_id in total_dict)
-        total_all_scenes["planning"] = sum(total_dict[scene_id]["planning"] for scene_id in total_dict)
-        total_all_scenes["prediction"] = sum(total_dict[scene_id]["prediction"] for scene_id in total_dict)
-        total_all_scenes["behavior"] = sum(total_dict[scene_id]["behavior"] for scene_id in total_dict)
-        logger.info(f"Total QA distribution: {total_all_scenes}")
-        return total_all_scenes
+        return self.analyze_all_scenes()['total_distribution']
     
     def analyze_qa_content(self) -> Dict[str, Any]:
         """
-        Analyze content patterns in QA data across all scenes.
+        Analyze content patterns in QA data across all scenes with caching.
         
         Returns:
             Dictionary containing object mentions, question patterns, and answer characteristics
         """
-        logger.info("Analyzing QA content patterns...")
+        cache_key = "qa_content_analysis"
+        result = self.get_cached_result(cache_key)
         
-        # Get all QA data for analysis
-        all_qa_data = {}
-        for scene_id in range(1, 7):
-            scene_data = self.data_loader.load_scene_data(scene_id)
-            for keyframe_token in scene_data['key_frames']:
-                qa_data = scene_data['key_frames'][keyframe_token]['QA']
-                all_qa_data[f"scene_{scene_id}_{keyframe_token}"] = qa_data
-        
-        # Analyze content patterns
-        object_mentions = self._extract_all_object_mentions(all_qa_data)
-        object_mentions_by_type = self._extract_object_mentions_by_qa_type(all_qa_data)
-        question_patterns = self._analyze_question_patterns(all_qa_data)
-        answer_patterns = self._analyze_answer_patterns(all_qa_data)
-        answer_characteristics = self._analyze_answer_characteristics(all_qa_data)
-        
-        return {
-            'objects': object_mentions,
-            'objects_by_type': object_mentions_by_type,
-            'question_patterns': question_patterns,
-            'answer_patterns': answer_patterns,
-            'answer_characteristics': answer_characteristics
-        }
-    
-    def _extract_all_object_mentions(self, all_qa_data: Dict[str, Any]) -> Dict[str, int]:
-        """Extract object mentions from all QA data"""
-        object_mentions = Counter()
-        
-        # Common object patterns
-        object_patterns = [
-            r'\b(car|cars|vehicle|vehicles)\b',
-            r'\b(pedestrian|pedestrians|person|people)\b',
-            r'\b(bicycle|bicycles|bike|bikes)\b',
-            r'\b(motorcycle|motorcycles)\b',
-            r'\b(truck|trucks)\b',
-            r'\b(bus|buses)\b',
-            r'\b(traffic light|traffic lights)\b',
-            r'\b(stop sign|stop signs)\b',
-            r'\b(barrier|barriers)\b',
-            r'\b(traffic cone|traffic cones)\b',
-            r'\b(construction|construction vehicle)\b'
-        ]
-        
-        for scene_keyframe, qa_data in all_qa_data.items():
-            for qa_type in self.qa_types:
-                if qa_type in qa_data:
-                    for qa_pair in qa_data[qa_type]:
-                        question = qa_pair.get('Q', '').lower()
-                        answer = qa_pair.get('A', '').lower()
-                        
-                        for pattern in object_patterns:
-                            matches = re.findall(pattern, question + ' ' + answer)
-                            for match in matches:
-                                object_mentions[match] += 1
-        
-        return dict(object_mentions.most_common(15))  # Top 15 objects
-    
-    def _extract_object_mentions_by_qa_type(self, all_qa_data: Dict[str, Any]) -> Dict[str, Dict[str, int]]:
-        """Extract object mentions broken down by QA type"""
-        object_mentions_by_type = {qa_type: Counter() for qa_type in self.qa_types}
-        
-        # Common object patterns
-        object_patterns = [
-            r'\b(car|cars|vehicle|vehicles)\b',
-            r'\b(pedestrian|pedestrians|person|people)\b',
-            r'\b(bicycle|bicycles|bike|bikes)\b',
-            r'\b(motorcycle|motorcycles)\b',
-            r'\b(truck|trucks)\b',
-            r'\b(bus|buses)\b',
-            r'\b(traffic light|traffic lights)\b',
-            r'\b(stop sign|stop signs)\b',
-            r'\b(barrier|barriers)\b',
-            r'\b(traffic cone|traffic cones)\b',
-            r'\b(construction|construction vehicle)\b'
-        ]
-        
-        for scene_keyframe, qa_data in all_qa_data.items():
-            for qa_type in self.qa_types:
-                if qa_type in qa_data:
-                    for qa_pair in qa_data[qa_type]:
-                        question = qa_pair.get('Q', '').lower()
-                        answer = qa_pair.get('A', '').lower()
-                        
-                        for pattern in object_patterns:
-                            matches = re.findall(pattern, question + ' ' + answer)
-                            for match in matches:
-                                object_mentions_by_type[qa_type][match] += 1
-        
-        # Convert to regular dict and get top objects
-        result = {}
-        for qa_type in self.qa_types:
-            result[qa_type] = dict(object_mentions_by_type[qa_type].most_common(10))  # Top 10 per type
+        if result is None:
+            logger.info("Analyzing QA content patterns...")
+            
+            # Get all QA data efficiently
+            all_qa_data = self._extract_all_qa_data()
+            
+            # Analyze content patterns
+            object_mentions = self._extract_all_object_mentions(all_qa_data)
+            object_mentions_by_type = self._extract_object_mentions_by_qa_type(all_qa_data)
+            question_patterns = self._analyze_question_patterns(all_qa_data)
+            answer_patterns = self._analyze_answer_patterns(all_qa_data)
+            answer_characteristics = self._analyze_answer_characteristics(all_qa_data)
+            
+            result = {
+                'objects': object_mentions,
+                'objects_by_type': object_mentions_by_type,
+                'question_patterns': question_patterns,
+                'answer_patterns': answer_patterns,
+                'answer_characteristics': answer_characteristics
+            }
+            self.set_cached_result(cache_key, result)
         
         return result
     
-    def _analyze_question_patterns(self, all_qa_data: Dict[str, Any]) -> Dict[str, Dict[str, int]]:
-        """Analyze question patterns by QA type"""
-        question_patterns = defaultdict(lambda: defaultdict(int))
-        
-        # Question pattern keywords
-        question_patterns_keywords = {
-            'what': ['what', 'what is', 'what are'],
-            'where': ['where', 'where is', 'where are'],
-            'when': ['when', 'when will', 'when should'],
-            'how': ['how', 'how should', 'how will'],
-            'why': ['why', 'why should', 'why will'],
-            'status': ['status', 'state', 'condition'],
-            'action': ['should', 'will', 'going to', 'planning to']
-        }
-        
-        for scene_keyframe, qa_data in all_qa_data.items():
-            for qa_type in self.qa_types:
-                if qa_type in qa_data:
-                    for qa_pair in qa_data[qa_type]:
-                        question = qa_pair.get('Q', '').lower()
-                        
-                        for pattern_name, keywords in question_patterns_keywords.items():
-                            for keyword in keywords:
-                                if keyword in question:
-                                    question_patterns[pattern_name][qa_type] += 1
-                                    break
-        
-        return dict(question_patterns)
-    
-    def _analyze_answer_patterns(self, all_qa_data: Dict[str, Any]) -> Dict[str, Dict[str, int]]:
-        """Analyze answer patterns by QA type"""
-        answer_patterns = defaultdict(lambda: defaultdict(int))
-        
-        # Answer pattern keywords
-        answer_patterns_keywords = {
-            'descriptive': ['there are', 'there is', 'many', 'several', 'various'],
-            'actionable': ['should', 'will', 'need to', 'must', 'have to'],
-            'conditional': ['if', 'when', 'unless', 'provided that', 'in case'],
-            'temporal': ['now', 'soon', 'later', 'before', 'after', 'while'],
-            'spatial': ['front', 'back', 'left', 'right', 'near', 'far', 'behind'],
-            'quantitative': ['one', 'two', 'three', 'many', 'few', 'several', 'all'],
-            'qualitative': ['good', 'bad', 'safe', 'dangerous', 'clear', 'obstructed']
-        }
-        
-        for scene_keyframe, qa_data in all_qa_data.items():
-            for qa_type in self.qa_types:
-                if qa_type in qa_data:
-                    for qa_pair in qa_data[qa_type]:
-                        answer = qa_pair.get('A', '').lower()
-                        
-                        for pattern_name, keywords in answer_patterns_keywords.items():
-                            for keyword in keywords:
-                                if keyword in answer:
-                                    answer_patterns[pattern_name][qa_type] += 1
-                                    break
-        
-        return dict(answer_patterns)
-    
-    def _analyze_answer_characteristics(self, all_qa_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Analyze answer characteristics by QA type"""
-        answer_lengths = defaultdict(list)
-        answer_complexity = defaultdict(list)
-        
-        for scene_keyframe, qa_data in all_qa_data.items():
-            for qa_type in self.qa_types:
-                if qa_type in qa_data:
-                    for qa_pair in qa_data[qa_type]:
-                        answer = qa_pair.get('A', '').lower()
-                        
-                        # Answer length (word count)
-                        word_count = len(answer.split())
-                        answer_lengths[qa_type].append(word_count)
-                        
-                        # Answer complexity (sentence count)
-                        sentence_count = len([s for s in answer.split('.') if s.strip()])
-                        answer_complexity[qa_type].append(sentence_count)
-        
-        return {
-            'lengths': dict(answer_lengths),
-            'complexity': dict(answer_complexity)
-        }
-        
-    def _get_qa_distribution(self, scene_id: Union[int, str], keyframe_id: Union[int, str]) -> Dict[str, Any]:
+    def _extract_all_qa_data(self) -> Dict[str, Any]:
         """
-        returns a dict {"perception": <total perception qa_pairs>, "planning": <total planning qa_pairs>, "prediction": <total prediction qa_pairs>, "behavior": <total behavior qa_pairs>, "total": <total qa_pairs>}
+        Extract all QA data from all scenes efficiently.
+        
+        Returns:
+            Dictionary containing all QA data indexed by scene_keyframe
         """
-        qa_data = self.data_loader.extract_questions_from_keyframe(scene_id, keyframe_id)
-        qa_distribution = {qa_type: 0 for qa_type in self.qa_types}        
-        qa_distribution["total"] = 0
-        if keyframe_id != 0:
-
+        cache_key = "all_qa_data"
+        result = self.get_cached_result(cache_key)
+        
+        if result is None:
+            logger.info("Extracting all QA data...")
+            all_qa_data = {}
+            
+            all_scenes_data = self.get_all_scenes_data()
+            
+            # Extract QA data from all scenes
+            for scene_id, scene_data in all_scenes_data.items():
+                for keyframe_token in scene_data['key_frames']:
+                    qa_data = scene_data['key_frames'][keyframe_token]['QA']
+                    all_qa_data[f"scene_{scene_id}_{keyframe_token}"] = qa_data
+            
+            self.set_cached_result(cache_key, all_qa_data)
+            logger.info(f"Extracted QA data for {len(all_qa_data)} scene-keyframe combinations")
+            result = all_qa_data
+        
+        return result
+    
+    def _get_qa_distribution_from_scene_data(self, scene_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Get QA distribution from scene data.
+        
+        Args:
+            scene_data: Scene data dictionary
+            
+        Returns:
+            Dictionary with QA type distribution
+        """
+        qa_distribution = {"total": 0, "perception": 0, "planning": 0, "prediction": 0, "behavior": 0}
+        
+        for keyframe_data in scene_data['key_frames'].values():
+            qa_data = keyframe_data.get('QA', {})
             for qa_type in self.qa_types:
-                qa_distribution[qa_type] = len(qa_data[qa_type])
-                qa_distribution["total"] += len(qa_data[qa_type])
-            # logger.info(f"QA distribution: {qa_distribution}")
-            return qa_distribution
-        # recursive call for all keyframes. here the qa_data looks like this: {"<keyframe_token>": {"perception": [qa_pairs], "planning": [qa_pairs], "prediction": [qa_pairs], "behavior": [qa_pairs]}}
-
-        for keyframe_token, qa_data in qa_data.items():
-            qa_distribution_for_keyframe = self._get_qa_distribution(scene_id, keyframe_token)
-            for qa_type in self.qa_types:
-                qa_distribution[qa_type] += qa_distribution_for_keyframe[qa_type]
-            # Recalculate total from individual QA types to avoid double counting
-            qa_distribution["total"] = sum(qa_distribution[qa_type] for qa_type in self.qa_types)
-            # logger.info(f"QA distribution total: {qa_distribution}")
+                if qa_type in qa_data:
+                    count = len(qa_data[qa_type])
+                    qa_distribution[qa_type] += count
+                    qa_distribution["total"] += count
+        
         return qa_distribution
-  
+    
     def _extract_object_mentions(self, qa_data: Dict[str, List[Dict]]) -> Dict[str, int]:
         """Extract object mentions from QA data"""
         object_mentions = defaultdict(int)
@@ -449,4 +370,157 @@ class QAAnalyzer:
     #     #     'question_complexity': self._calculate_question_complexity(qa_data),
     #     # }
     #     return all_keyframe_analysis
+
+    def _extract_all_object_mentions(self, all_qa_data: Dict[str, Any]) -> Dict[str, int]:
+        """Extract object mentions from all QA data"""
+        object_mentions = Counter()
+        
+        # Common object patterns
+        object_patterns = [
+            r'\b(car|cars|vehicle|vehicles)\b',
+            r'\b(pedestrian|pedestrians|person|people)\b',
+            r'\b(bicycle|bicycles|bike|bikes)\b',
+            r'\b(motorcycle|motorcycles)\b',
+            r'\b(truck|trucks)\b',
+            r'\b(bus|buses)\b',
+            r'\b(traffic light|traffic lights)\b',
+            r'\b(stop sign|stop signs)\b',
+            r'\b(barrier|barriers)\b',
+            r'\b(traffic cone|traffic cones)\b',
+            r'\b(construction|construction vehicle)\b'
+        ]
+        
+        for scene_keyframe, qa_data in all_qa_data.items():
+            for qa_type in self.qa_types:
+                if qa_type in qa_data:
+                    for qa_pair in qa_data[qa_type]:
+                        question = qa_pair.get('Q', '').lower()
+                        answer = qa_pair.get('A', '').lower()
+                        
+                        for pattern in object_patterns:
+                            matches = re.findall(pattern, question + ' ' + answer)
+                            for match in matches:
+                                object_mentions[match] += 1
+        
+        return dict(object_mentions.most_common(15))  # Top 15 objects
+    
+    def _extract_object_mentions_by_qa_type(self, all_qa_data: Dict[str, Any]) -> Dict[str, Dict[str, int]]:
+        """Extract object mentions broken down by QA type"""
+        object_mentions_by_type = {qa_type: Counter() for qa_type in self.qa_types}
+        
+        # Common object patterns
+        object_patterns = [
+            r'\b(car|cars|vehicle|vehicles)\b',
+            r'\b(pedestrian|pedestrians|person|people)\b',
+            r'\b(bicycle|bicycles|bike|bikes)\b',
+            r'\b(motorcycle|motorcycles)\b',
+            r'\b(truck|trucks)\b',
+            r'\b(bus|buses)\b',
+            r'\b(traffic light|traffic lights)\b',
+            r'\b(stop sign|stop signs)\b',
+            r'\b(barrier|barriers)\b',
+            r'\b(traffic cone|traffic cones)\b',
+            r'\b(construction|construction vehicle)\b'
+        ]
+        
+        for scene_keyframe, qa_data in all_qa_data.items():
+            for qa_type in self.qa_types:
+                if qa_type in qa_data:
+                    for qa_pair in qa_data[qa_type]:
+                        question = qa_pair.get('Q', '').lower()
+                        answer = qa_pair.get('A', '').lower()
+                        
+                        for pattern in object_patterns:
+                            matches = re.findall(pattern, question + ' ' + answer)
+                            for match in matches:
+                                object_mentions_by_type[qa_type][match] += 1
+        
+        # Convert to regular dict and get top objects
+        result = {}
+        for qa_type in self.qa_types:
+            result[qa_type] = dict(object_mentions_by_type[qa_type].most_common(10))  # Top 10 per type
+        
+        return result
+    
+    def _analyze_question_patterns(self, all_qa_data: Dict[str, Any]) -> Dict[str, Dict[str, int]]:
+        """Analyze question patterns by QA type"""
+        question_patterns = defaultdict(lambda: defaultdict(int))
+        
+        # Question pattern keywords
+        question_patterns_keywords = {
+            'what': ['what', 'what is', 'what are'],
+            'where': ['where', 'where is', 'where are'],
+            'when': ['when', 'when will', 'when should'],
+            'how': ['how', 'how should', 'how will'],
+            'why': ['why', 'why should', 'why will'],
+            'status': ['status', 'state', 'condition'],
+            'action': ['should', 'will', 'going to', 'planning to']
+        }
+        
+        for scene_keyframe, qa_data in all_qa_data.items():
+            for qa_type in self.qa_types:
+                if qa_type in qa_data:
+                    for qa_pair in qa_data[qa_type]:
+                        question = qa_pair.get('Q', '').lower()
+                        
+                        for pattern_name, keywords in question_patterns_keywords.items():
+                            for keyword in keywords:
+                                if keyword in question:
+                                    question_patterns[pattern_name][qa_type] += 1
+                                    break
+        
+        return dict(question_patterns)
+    
+    def _analyze_answer_patterns(self, all_qa_data: Dict[str, Any]) -> Dict[str, Dict[str, int]]:
+        """Analyze answer patterns by QA type"""
+        answer_patterns = defaultdict(lambda: defaultdict(int))
+        
+        # Answer pattern keywords
+        answer_patterns_keywords = {
+            'descriptive': ['there are', 'there is', 'many', 'several', 'various'],
+            'actionable': ['should', 'will', 'need to', 'must', 'have to'],
+            'conditional': ['if', 'when', 'unless', 'provided that', 'in case'],
+            'temporal': ['now', 'soon', 'later', 'before', 'after', 'while'],
+            'spatial': ['front', 'back', 'left', 'right', 'near', 'far', 'behind'],
+            'quantitative': ['one', 'two', 'three', 'many', 'few', 'several', 'all'],
+            'qualitative': ['good', 'bad', 'safe', 'dangerous', 'clear', 'obstructed']
+        }
+        
+        for scene_keyframe, qa_data in all_qa_data.items():
+            for qa_type in self.qa_types:
+                if qa_type in qa_data:
+                    for qa_pair in qa_data[qa_type]:
+                        answer = qa_pair.get('A', '').lower()
+                        
+                        for pattern_name, keywords in answer_patterns_keywords.items():
+                            for keyword in keywords:
+                                if keyword in answer:
+                                    answer_patterns[pattern_name][qa_type] += 1
+                                    break
+        
+        return dict(answer_patterns)
+    
+    def _analyze_answer_characteristics(self, all_qa_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze answer characteristics by QA type"""
+        answer_lengths = defaultdict(list)
+        answer_complexity = defaultdict(list)
+        
+        for scene_keyframe, qa_data in all_qa_data.items():
+            for qa_type in self.qa_types:
+                if qa_type in qa_data:
+                    for qa_pair in qa_data[qa_type]:
+                        answer = qa_pair.get('A', '').lower()
+                        
+                        # Answer length (word count)
+                        word_count = len(answer.split())
+                        answer_lengths[qa_type].append(word_count)
+                        
+                        # Answer complexity (sentence count)
+                        sentence_count = len([s for s in answer.split('.') if s.strip()])
+                        answer_complexity[qa_type].append(sentence_count)
+        
+        return {
+            'lengths': dict(answer_lengths),
+            'complexity': dict(answer_complexity)
+        }
 

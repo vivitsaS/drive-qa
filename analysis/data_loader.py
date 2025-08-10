@@ -1,18 +1,19 @@
 """
 Data Loader for concatenated Dataset
 
-Loads and parses concatenated JSON data for analysis.
+Loads and parses concatenated JSON data for analysis with caching for performance.
 """
 
 import json
 import numpy as np
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Union, Optional
 from pathlib import Path
 from loguru import logger
+from functools import lru_cache
 
 
 class DataLoader:
-    """Load and parse concatenated JSON data"""
+    """Load and parse concatenated JSON data with caching"""
     
     def __init__(self, data_path: str = "data/concatenated_data/concatenated_data.json"):
         """
@@ -22,6 +23,10 @@ class DataLoader:
             data_path: Path to the concatenated JSON data file
         """
         self.data_path = self._assign_data_path(data_path)
+        self._all_data_cache: Optional[Dict[str, Any]] = None
+        self._scene_data_cache: Dict[str, Any] = {}
+        self._token_mappings_cache: Optional[Dict[str, Dict[int, str]]] = None
+        
     def _assign_data_path(self, data_path: str) -> str:
         """Assign data path"""
         try:
@@ -37,34 +42,64 @@ class DataLoader:
         except Exception as e:
             logger.error(f"Error assigning data path: {e}")
             return "data/concatenated_data/concatenated_data.json"
+    
+    def _get_token_mappings(self) -> Dict[str, Dict[int, str]]:
+        """
+        Get cached token mappings for scenes and keyframes.
+        
+        Returns:
+            Dictionary with scene and keyframe token mappings
+        """
+        if self._token_mappings_cache is None:
+            all_data = self.load_all_data()
+            scene_tokens = list(all_data.keys())
+            
+            # Create scene token mappings
+            scene_serial_numbers = list(range(1, len(scene_tokens) + 1))
+            scene_mapping = dict(zip(scene_serial_numbers, scene_tokens))
+            
+            # Create keyframe token mappings for each scene
+            keyframe_mappings = {}
+            for scene_id, scene_token in scene_mapping.items():
+                scene_data = all_data[scene_token]
+                keyframe_tokens = list(scene_data['key_frames'].keys())
+                keyframe_serial_numbers = list(range(1, len(keyframe_tokens) + 1))
+                keyframe_mappings[scene_token] = dict(zip(keyframe_serial_numbers, keyframe_tokens))
+            
+            self._token_mappings_cache = {
+                'scenes': scene_mapping,
+                'keyframes': keyframe_mappings
+            }
+        
+        return self._token_mappings_cache
+    
     def _assign_scene_token(self, scene_id) -> str:
         """
-        Assign scene id to the scene token.
+        Assign scene id to the scene token using cached mappings.
         """
-        # scene_tokens to serial number map
-        # get the list of scene tokens
-        # get the entire data, which is of the form { "<scene_token>": <scene_data>, "<scene_token>": <scene_data>, ... }
-        all_data = self.load_all_data()
-        scene_tokens = list(all_data.keys())
-        scene_serial_numbers = list(range(1, len(scene_tokens) + 1))
-        serial_number_to_scene_token_map = dict(zip(scene_serial_numbers, scene_tokens))
         try:
+            mappings = self._get_token_mappings()
+            scene_mapping = mappings['scenes']
+            
             if isinstance(scene_id, int):
-                if scene_id in serial_number_to_scene_token_map:
-                    return serial_number_to_scene_token_map[scene_id]
+                if scene_id in scene_mapping:
+                    return scene_mapping[scene_id]
                 else:
-                    raise ValueError(f"Scene ID {scene_id} not found in the data, make sure the number is between 1 and {len(scene_tokens)}")
+                    raise ValueError(f"Scene ID {scene_id} not found in the data, make sure the number is between 1 and {len(scene_mapping)}")
             elif isinstance(scene_id, str):
-                if scene_id in scene_tokens:
+                # Check if it's already a valid scene token
+                all_data = self.load_all_data()
+                if scene_id in all_data:
                     return scene_id
                 else:
                     raise ValueError(f"Scene ID {scene_id} not found in the data, make sure the scene token is valid")
         except Exception as e:
             logger.error(f"Error assigning scene token: {e}")
             raise ValueError(f"Invalid scene_id: {scene_id}")
-    def load_scene_data(self, scene_identifier: str) -> Dict[str, Any]:
+    
+    def load_scene_data(self, scene_identifier: Union[int, str]) -> Dict[str, Any]:
         """
-        Load scene data from JSON by scene token or serial number.
+        Load scene data from JSON by scene token or serial number with caching.
         
         Args:
             scene_identifier: Scene token or serial number (1-6)
@@ -73,26 +108,37 @@ class DataLoader:
             Scene data dictionary
         """
         scene_token = self._assign_scene_token(scene_identifier)
+        
+        # Check cache first
+        if scene_token in self._scene_data_cache:
+            return self._scene_data_cache[scene_token]
+        
+        # Load from all data and cache
         scene_data = self.load_all_data()[scene_token]
+        self._scene_data_cache[scene_token] = scene_data
         return scene_data
+    
     def load_all_data(self) -> Dict[str, Any]:
         """
-        Load all available scene data.
+        Load all available scene data with caching.
         
         Returns:
             Dictionary containing scene data with scene tokens as keys
         """
-        # load the data from the json file
-        try:
-            with open(self.data_path, 'r') as f:
-                data = json.load(f)
-        except Exception as e:
-            logger.error(f"Error loading data: {e}")
-            return {}
-        return data
+        if self._all_data_cache is None:
+            try:
+                with open(self.data_path, 'r') as f:
+                    self._all_data_cache = json.load(f)
+                logger.info(f"Loaded data from {self.data_path}")
+            except Exception as e:
+                logger.error(f"Error loading data: {e}")
+                self._all_data_cache = {}
+        
+        return self._all_data_cache
+    
     def _assign_keyframe_token(self, scene_id: Union[int, str], keyframe_id: Union[int, str]) -> str:
         """
-        Assign keyframe token to the keyframe id.
+        Assign keyframe token to the keyframe id using cached mappings.
         
         Args:
             scene_id: Scene identifier (int or str)
@@ -105,18 +151,24 @@ class DataLoader:
             ValueError: If keyframe_id is invalid or not found
         """
         try:
-            scene_data = self.load_scene_data(scene_id)
-            keyframe_tokens = list(scene_data['key_frames'].keys())
-            keyframe_serial_numbers = list(range(1, len(keyframe_tokens) + 1))  
-            serial_number_to_keyframe_token_map = dict(zip(keyframe_serial_numbers, keyframe_tokens))
+            scene_token = self._assign_scene_token(scene_id)
+            mappings = self._get_token_mappings()
+            keyframe_mappings = mappings['keyframes']
+            
+            if scene_token not in keyframe_mappings:
+                raise ValueError(f"No keyframe mappings found for scene {scene_id}")
+            
+            scene_keyframe_mapping = keyframe_mappings[scene_token]
             
             if isinstance(keyframe_id, int):
-                if keyframe_id in serial_number_to_keyframe_token_map:
-                    return serial_number_to_keyframe_token_map[keyframe_id]
+                if keyframe_id in scene_keyframe_mapping:
+                    return scene_keyframe_mapping[keyframe_id]
                 else:
-                    raise ValueError(f"Keyframe ID {keyframe_id} not found. Valid range: 1 to {len(keyframe_tokens)}")
+                    raise ValueError(f"Keyframe ID {keyframe_id} not found. Valid range: 1 to {len(scene_keyframe_mapping)}")
             elif isinstance(keyframe_id, str):
-                if keyframe_id in keyframe_tokens:
+                # Check if it's already a valid keyframe token
+                scene_data = self.load_scene_data(scene_id)
+                if keyframe_id in scene_data['key_frames']:
                     return keyframe_id
                 else:
                     raise ValueError(f"Keyframe token '{keyframe_id}' not found in scene data")
@@ -129,31 +181,37 @@ class DataLoader:
         except Exception as e:
             logger.error(f"Error assigning keyframe token: {e}")
             raise ValueError(f"Failed to assign keyframe token for scene {scene_id}, keyframe {keyframe_id}: {e}")
+    
     def extract_questions_from_keyframe(self, scene_id: int, keyframe_id: int) -> List[Dict[str, Any]]:
-        """Extract all questions from given keyframe"""
+        """Extract all questions from given keyframe with optimized data access"""
+        # Load scene data once
         scene_data = self.load_scene_data(scene_id)
+        
         # base case: if keyframe_id is 0, return all questions
         if keyframe_id != 0:
-            # logger.info(f"Extracting questions from keyframe {keyframe_id}")
-            qa_pairs = self.load_scene_data(scene_id)["key_frames"][self._assign_keyframe_token(scene_id, keyframe_id)]["QA"]
+            keyframe_token = self._assign_keyframe_token(scene_id, keyframe_id)
+            qa_pairs = scene_data["key_frames"][keyframe_token]["QA"]
             return qa_pairs
         
+        # Return all questions from all keyframes
         all_qa_pairs = {}
-        for i in range(1, len(scene_data["key_frames"]) + 1):
-            # logger.info(f"Extracting questions from keyframe {i}")
-            qa_pairs = self.extract_questions_from_keyframe(scene_id, i)
-            all_qa_pairs[self._assign_keyframe_token(scene_id, i)] = qa_pairs
+        for keyframe_token in scene_data["key_frames"]:
+            qa_pairs = scene_data["key_frames"][keyframe_token]["QA"]
+            all_qa_pairs[keyframe_token] = qa_pairs
         return all_qa_pairs
+    
     def get_keyframe_info_for_scene(self, scene_id: Union[int, str]) -> Dict[str, Any]:
         """
-        Get keyframe info for a specific scene.
+        Get keyframe info for a specific scene with optimized data access.
         """
-        info = {"keyframe_tokens": [], "total_keyframes": 0}
         scene_data = self.load_scene_data(scene_id)
-        for keyframe_id in scene_data["key_frames"]:
-            info["keyframe_tokens"].append(keyframe_id)
-            info["total_keyframes"] += 1
-        return info
+        keyframe_tokens = list(scene_data["key_frames"].keys())
+        
+        return {
+            "keyframe_tokens": keyframe_tokens,
+            "total_keyframes": len(keyframe_tokens)
+        }
+    
     def get_keyframe_data(self, scene_id: Union[int, str], keyframe_id: Union[int, str]) -> Dict[str, Any]:
         """
         Get comprehensive data for a specific keyframe including both nuScenes sample data and DriveLM keyframe data.
@@ -163,85 +221,27 @@ class DataLoader:
             keyframe_id: Keyframe identifier (int or str)
             
         Returns:
-            Dictionary containing combined keyframe data with the following structure:
-            {
-                'scene_info': {
-                    'scene_name': str,
-                    'scene_description': str,
-                    'scene_token': str,
-                    'keyframe_token': str
-                },
-                'nuScenes_data': {
-                    'timestamp': int,
-                    'sensor_data': {
-                        'CAM_FRONT': {...},
-                        'CAM_BACK': {...},
-                        'LIDAR_TOP': {...},
-                        'RADAR_FRONT': {...},
-                        ...
-                    },
-                    'annotations': [...],
-                    'ego_pose': {...},
-                    'prev': str,
-                    'next': str
-                },
-                'DriveLM_data': {
-                    'QA': {
-                        'perception': [...],
-                        'prediction': [...],
-                        'planning': [...],
-                        'behavior': [...]
-                    },
-                    'image_paths': {
-                        'CAM_FRONT': str,
-                        'CAM_BACK': str,
-                        ...
-                    },
-                    'key_object_infos': {
-                        '<camera,view,x,y>': {
-                            'Category': str,
-                            'Status': str,
-                            'Visual_description': str,
-                            '2d_bbox': [x1, y1, x2, y2]
-                        },
-                        ...
-                    }
-                }
-            }
+            Dictionary containing combined keyframe data
         """
-        try:
-            # Get scene data
-            scene_data = self.load_scene_data(scene_id)
-            scene_token = self._assign_scene_token(scene_id)
-            keyframe_token = self._assign_keyframe_token(scene_token, keyframe_id)
-            
-            # Extract scene info
-            scene_info = {
-                'scene_name': scene_data['scene_name'],
-                'scene_description': scene_data['scene_description'],
-                'scene_token': scene_token,
+        # Load scene data once
+        scene_data = self.load_scene_data(scene_id)
+        keyframe_token = self._assign_keyframe_token(scene_id, keyframe_id)
+        keyframe_data = scene_data["key_frames"][keyframe_token]
+        
+        return {
+            'scene_info': {
+                'scene_name': scene_data.get('scene_name', ''),
+                'scene_description': scene_data.get('scene_description', ''),
+                'scene_token': scene_data.get('scene_token', ''),
                 'keyframe_token': keyframe_token
+            },
+            'nuScenes_data': keyframe_data.get('nuScenes_data', {}),
+            'DriveLM_data': {
+                'QA': keyframe_data.get('QA', {}),
+                'image_paths': keyframe_data.get('image_paths', {}),
+                'key_object_infos': keyframe_data.get('key_object_infos', {})
             }
-            
-            # Extract nuScenes sample data
-            nuScenes_data = scene_data['samples'][keyframe_token]
-            
-            # Extract DriveLM keyframe data
-            DriveLM_data = scene_data['key_frames'][keyframe_token]
-            
-            # Combine the data
-            combined_data = {
-                'scene_info': scene_info,
-                'nuScenes_data': nuScenes_data,
-                'DriveLM_data': DriveLM_data
-            }
-            
-            # logger.info(f"Successfully loaded keyframe data for scene {scene_id}, keyframe {keyframe_id}")
-            return combined_data
-            
-        except Exception as e:
-            logger.error(f"Error loading keyframe data for scene {scene_id}, keyframe {keyframe_id}: {e}")
-            raise ValueError(f"Failed to load keyframe data: {e}")   
+        }
     def extract_ego_movement_data(self, scene_id: Union[int, str]) -> Dict[str, Any]:
         """
         Extract comprehensive ego vehicle movement data for analysis.
