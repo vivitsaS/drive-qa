@@ -11,6 +11,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from analysis.qa_analyzer import QAAnalyzer
 from analysis.data_loader import DataLoader
 from analysis.vehicle_state_analyzer import VehicleStateAnalyzer
+from analysis.sensor_analyzer import SensorAnalyzer
+from analysis.predictor_analyzer import PredictorAnalyzer
 
 def main():
     st.title("DriveLM QA Analysis Dashboard")
@@ -19,6 +21,8 @@ def main():
     data_loader = DataLoader()
     qa_analyzer = QAAnalyzer(data_loader)
     vehicle_analyzer = VehicleStateAnalyzer(data_loader)
+    sensor_analyzer = SensorAnalyzer(data_loader)
+    predictor_analyzer = PredictorAnalyzer(data_loader)
     
     # Get QA distribution data
     totals = qa_analyzer.analyze_scenes()  # This gets data for all scenes
@@ -226,6 +230,145 @@ def main():
                 barmode='group'
             )
             st.plotly_chart(fig_components, use_container_width=True)
+    
+    # Sensor Analysis Section
+    st.header("Sensor Analysis")
+    
+    # Get sensor analysis data
+    sensor_coverage = sensor_analyzer.analyze_sensor_coverage()
+    sensor_usage = sensor_analyzer.analyze_scene_specific_usage()
+    
+    # Create tabs for sensor analysis
+    sensor_tab1, sensor_tab2 = st.tabs(["Sensor Coverage", "Scene-Specific Usage"])
+    
+    with sensor_tab1:
+        st.subheader("Camera Activity Patterns")
+        
+        # Prepare camera activity data
+        camera_activity_data = []
+        for scene_name, camera_data in sensor_coverage['camera_activity'].items():
+            for camera, data in camera_data.items():
+                camera_activity_data.append({
+                    'Scene': scene_name,
+                    'Camera': camera,
+                    'Activity (%)': data['percentage'],
+                    'Is Active': data['is_active']
+                })
+        
+        if camera_activity_data:
+            camera_df = pd.DataFrame(camera_activity_data)
+            
+            # Camera activity heatmap
+            camera_pivot = camera_df.pivot(index='Camera', columns='Scene', values='Activity (%)')
+            fig_camera_activity = px.imshow(
+                camera_pivot,
+                labels=dict(x="Scene", y="Camera", color="Activity (%)"),
+                title="Camera Activity by Scene"
+            )
+            st.plotly_chart(fig_camera_activity, use_container_width=True)
+        
+        st.subheader("Sensor Fusion Patterns")
+        
+        # Prepare fusion data
+        fusion_data = []
+        for scene_name, fusion_data_scene in sensor_coverage['sensor_fusion_patterns'].items():
+            fusion_data.append({
+                'Scene': scene_name,
+                'Camera-Radar Fusion (%)': fusion_data_scene.get('camera_radar_fusion_pct', 0),
+                'Camera-LiDAR Fusion (%)': fusion_data_scene.get('camera_lidar_fusion_pct', 0),
+                'Full Sensor Fusion (%)': fusion_data_scene.get('full_sensor_fusion_pct', 0)
+            })
+        
+        if fusion_data:
+            fusion_df = pd.DataFrame(fusion_data)
+            
+            # Fusion patterns bar chart
+            fig_fusion = px.bar(
+                fusion_df,
+                x='Scene',
+                y=['Camera-Radar Fusion (%)', 'Camera-LiDAR Fusion (%)', 'Full Sensor Fusion (%)'],
+                barmode='group'
+            )
+            st.plotly_chart(fig_fusion, use_container_width=True)
+    
+    with sensor_tab2:
+        st.subheader("Camera Importance by Scene")
+        
+        # Prepare camera importance data
+        importance_data = []
+        for scene_name, importance_data_scene in sensor_usage['camera_importance'].items():
+            for camera, data in importance_data_scene.items():
+                importance_data.append({
+                    'Scene': scene_name,
+                    'Camera': camera,
+                    'Importance Score': data['importance_score'],
+                    'Importance Level': data['importance_level']
+                })
+        
+        if importance_data:
+            importance_df = pd.DataFrame(importance_data)
+            
+            # Camera importance heatmap
+            importance_pivot = importance_df.pivot(index='Camera', columns='Scene', values='Importance Score')
+            fig_importance = px.imshow(
+                importance_pivot,
+                labels=dict(x="Scene", y="Camera", color="Importance Score"),
+                title="Camera Importance by Scene"
+            )
+            st.plotly_chart(fig_importance, use_container_width=True)
+        
+        st.subheader("Sensor Redundancy Analysis")
+        
+        # Prepare redundancy data
+        redundancy_data = []
+        for scene_name, redundancy_data_scene in sensor_usage['sensor_redundancy'].items():
+            redundancy_data.append({
+                'Scene': scene_name,
+                'Overall Redundancy': redundancy_data_scene.get('overall_redundancy', 0)
+            })
+        
+        if redundancy_data:
+            redundancy_df = pd.DataFrame(redundancy_data)
+            
+            # Redundancy bar chart
+            fig_redundancy = px.bar(
+                redundancy_df,
+                x='Scene',
+                y='Overall Redundancy'
+            )
+            st.plotly_chart(fig_redundancy, use_container_width=True)
+    
+    # Predictor Analysis Section
+    st.header("Predictor Analysis")
+    
+    # Get predictor analysis data
+    predictor_results = predictor_analyzer.analyze_qa_type_predictors()
+    
+    st.subheader("Feature Importance by QA Type")
+    
+    # Prepare feature importance data
+    importance_data = []
+    for qa_type, results in predictor_results.items():
+        if 'feature_importance' in results:
+            for i, feature_info in enumerate(results['feature_importance'][:10]):  # Top 10 features
+                importance_data.append({
+                    'QA Type': qa_type.capitalize(),
+                    'Feature': feature_info['feature'],
+                    'Combined Score': feature_info['combined_score'],
+                    'Rank': i + 1
+                })
+    
+    if importance_data:
+        importance_df = pd.DataFrame(importance_data)
+        
+        # Feature importance heatmap
+        importance_pivot = importance_df.pivot(index='Feature', columns='QA Type', values='Combined Score')
+        fig_feature_importance = px.imshow(
+            importance_pivot,
+            labels=dict(x="QA Type", y="Feature", color="Importance Score"),
+            title="Feature Importance by QA Type"
+        )
+        st.plotly_chart(fig_feature_importance, use_container_width=True)
 
 if __name__ == "__main__":
     main() 
