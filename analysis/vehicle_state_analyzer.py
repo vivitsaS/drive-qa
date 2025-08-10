@@ -522,3 +522,80 @@ class VehicleStateAnalyzer:
         except Exception as e:
             logger.error(f"Error generating comprehensive analysis: {e}")
             return {}
+    
+    def analyze_all_scenes(self) -> Dict[str, Any]:
+        """
+        Analyze vehicle state data for all scenes.
+        
+        Returns:
+            Dictionary containing vehicle analysis for all scenes
+        """
+        logger.info("Analyzing vehicle state data for all scenes...")
+        
+        all_scenes_analysis = {}
+        scene_summaries = {
+            'driving_styles': [],
+            'avg_speeds': [],
+            'risk_scores': [],
+            'smoothness_scores': [],
+            'compliance_scores': []
+        }
+        
+        for scene_id in range(1, 7):
+            try:
+                scene_analysis = self.analyze_scene(scene_id)
+                all_scenes_analysis[f"Scene {scene_id}"] = scene_analysis
+                
+                # Collect summary data for overall analysis
+                if scene_analysis:
+                    # Driving style
+                    driving_style = scene_analysis.get('driving_style', {})
+                    if driving_style:
+                        scene_summaries['driving_styles'].append({
+                            'scene': f"Scene {scene_id}",
+                            'style': driving_style.get('style', 'unknown'),
+                            'score': driving_style.get('overall_score', 0)
+                        })
+                    
+                    # Speed data
+                    velocity_summary = scene_analysis.get('velocity_summary', {})
+                    if velocity_summary:
+                        scene_summaries['avg_speeds'].append({
+                            'scene': f"Scene {scene_id}",
+                            'avg_speed': velocity_summary.get('avg_speed', 0),
+                            'max_speed': velocity_summary.get('max_speed', 0)
+                        })
+                    
+                    # Risk assessment
+                    risk_assessment = scene_analysis.get('risk_assessment', {})
+                    if risk_assessment:
+                        scene_summaries['risk_scores'].append({
+                            'scene': f"Scene {scene_id}",
+                            'risk_score': risk_assessment.get('overall_risk_score', 0),
+                            'risk_level': risk_assessment.get('risk_level', 'unknown')
+                        })
+                    
+                    # Smoothness
+                    smoothness = scene_analysis.get('smoothness', {})
+                    if smoothness:
+                        scene_summaries['smoothness_scores'].append({
+                            'scene': f"Scene {scene_id}",
+                            'smoothness_score': smoothness.get('overall_smoothness_score', 0)
+                        })
+                    
+                    # Traffic compliance
+                    traffic_compliance = scene_analysis.get('traffic_compliance', {})
+                    if traffic_compliance:
+                        scene_summaries['compliance_scores'].append({
+                            'scene': f"Scene {scene_id}",
+                            'compliance_level': traffic_compliance.get('compliance_level', 'unknown')
+                        })
+                        
+            except Exception as e:
+                logger.error(f"Error analyzing scene {scene_id}: {e}")
+                continue
+        
+        return {
+            'scene_analyses': all_scenes_analysis,
+            'summaries': scene_summaries
+        }
