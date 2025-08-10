@@ -493,132 +493,8 @@ class VehicleStateAnalyzer:
             logger.error(f"Error detecting system performance issues: {e}")
             return {}
 
-    def analyze_event_correlation(self, scene_id: Union[int, str]) -> Dict[str, Any]:
-        """
-        Analyze movement changes during important events using images.
-        
-        Args:
-            scene_id: Scene identifier
-            
-        Returns:
-            Dictionary containing event correlation analysis
-        """
-        try:
-            scene_data = self.data_loader.load_scene_data(scene_id)
-            key_frames = scene_data['key_frames']
-            
-            event_correlations = []
-            
-            for keyframe_token, keyframe_data in key_frames.items():
-                # Get image paths for this keyframe
-                image_paths = keyframe_data.get('image_paths', {})
-                
-                # Get QA data to understand what events are happening
-                qa_data = keyframe_data.get('QA', {})
-                
-                # Analyze movement around this keyframe
-                # This would require temporal alignment with movement data
-                
-                event_correlations.append({
-                    'keyframe_token': keyframe_token,
-                    'image_paths': image_paths,
-                    'qa_categories': list(qa_data.keys()) if qa_data else [],
-                    'event_type': 'perception' if 'perception' in qa_data else 'prediction' if 'prediction' in qa_data else 'planning' if 'planning' in qa_data else 'behavior'
-                })
-            
-            return {
-                'total_events': len(event_correlations),
-                'event_types': Counter([e['event_type'] for e in event_correlations]),
-                'events_with_images': len([e for e in event_correlations if e['image_paths']]),
-                'event_correlations': event_correlations
-            }
-        except Exception as e:
-            logger.error(f"Error analyzing event correlation: {e}")
-            return {}
 
-    def assess_data_quality(self, scene_id: Union[int, str]) -> Dict[str, Any]:
-        """
-        Assess data quality: completeness, reliability, alignment.
-        
-        Args:
-            scene_id: Scene identifier
-            
-        Returns:
-            Dictionary containing data quality assessment
-        """
-        try:
-            scene_data = self.data_loader.load_scene_data(scene_id)
-            samples = scene_data['samples']
-            
-            # Data completeness
-            total_samples = len(samples)
-            complete_samples = 0
-            missing_data_issues = []
-            
-            for sample_token, sample_data in samples.items():
-                has_ego_pose = 'ego_pose' in sample_data and sample_data['ego_pose']
-                has_sensor_data = 'sensor_data' in sample_data and sample_data['sensor_data']
-                has_annotations = 'annotations' in sample_data and sample_data['annotations']
-                
-                if has_ego_pose and has_sensor_data and has_annotations:
-                    complete_samples += 1
-                else:
-                    missing_data_issues.append({
-                        'sample_token': sample_token,
-                        'missing_ego_pose': not has_ego_pose,
-                        'missing_sensor_data': not has_sensor_data,
-                        'missing_annotations': not has_annotations
-                    })
-            
-            completeness_rate = complete_samples / total_samples if total_samples > 0 else 0.0
-            
-            # Sensor reliability (check for expected sensors)
-            sensor_reliability = {}
-            expected_sensors = ['CAM_FRONT', 'LIDAR_TOP']
-            
-            for sensor in expected_sensors:
-                sensor_present_count = 0
-                for sample_data in samples.values():
-                    if sensor in sample_data.get('sensor_data', {}):
-                        sensor_present_count += 1
-                sensor_reliability[sensor] = sensor_present_count / total_samples if total_samples > 0 else 0.0
-            
-            # Temporal alignment (check if timestamps are consistent)
-            timestamps = []
-            for sample_data in samples.values():
-                if 'ego_pose' in sample_data:
-                    timestamps.append(sample_data['ego_pose']['timestamp'])
-            
-            temporal_consistency = len(set(timestamps)) == len(timestamps) if timestamps else True
-            
-            # Annotation correlation (check if annotations align with ego pose)
-            annotation_correlation = 0
-            total_annotations = 0
-            
-            for sample_data in samples.values():
-                if 'annotations' in sample_data and 'ego_pose' in sample_data:
-                    total_annotations += len(sample_data['annotations'])
-                    # Simple correlation: check if annotations have valid positions
-                    valid_annotations = sum(1 for ann in sample_data['annotations'] 
-                                         if 'translation' in ann and len(ann['translation']) == 3)
-                    annotation_correlation += valid_annotations
-            
-            annotation_correlation_rate = annotation_correlation / total_annotations if total_annotations > 0 else 0.0
-            
-            return {
-                'completeness_rate': completeness_rate,
-                'sensor_reliability': sensor_reliability,
-                'temporal_consistency': temporal_consistency,
-                'annotation_correlation_rate': annotation_correlation_rate,
-                'missing_data_issues': missing_data_issues,
-                'overall_quality_score': (completeness_rate + np.mean(list(sensor_reliability.values())) + 
-                                        (1.0 if temporal_consistency else 0.0) + annotation_correlation_rate) / 4
-            }
-        except Exception as e:
-            logger.error(f"Error assessing data quality: {e}")
-            return {}
-
-    def generate_comprehensive_analysis(self, scene_id: Union[int, str]) -> Dict[str, Any]:
+    def analyze_scene(self, scene_id: Union[int, str]) -> Dict[str, Any]:
         """
         Generate comprehensive analysis combining all metrics.
         
@@ -639,9 +515,7 @@ class VehicleStateAnalyzer:
                 'safety_margins': self.analyze_safety_margins(scene_id),
                 'collision_risk': self.assess_collision_risk(scene_id),
                 'traffic_compliance': self.analyze_traffic_compliance(scene_id),
-                'system_performance': self.detect_system_performance_issues(scene_id),
-                'event_correlation': self.analyze_event_correlation(scene_id),
-                'data_quality': self.assess_data_quality(scene_id)
+                'system_performance': self.detect_system_performance_issues(scene_id)
             }
             
             return analysis

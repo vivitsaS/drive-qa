@@ -201,7 +201,8 @@ class QAAnalyzer:
         # logger.info(f"QA data: {qa_data.keys()}")
 
         keyframe_analysis = {
-            'keyframe_token': keyframe_id,
+            # 'scene': {"scene_id": scene_id, "scene_token": self.data_loader._assign_scene_token(scene_id)},
+            # 'keyframe': {"keyframe_id": keyframe_id, "keyframe_token": self.data_loader._assign_keyframe_token(scene_id, keyframe_id)},
             'qa_type_distribution': self._get_qa_distribution(scene_id, keyframe_id),
             # 'qa_complexity': self._calculate_qa_complexity(qa_data),
             'object_mentions': self._extract_object_mentions(qa_data),
