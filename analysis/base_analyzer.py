@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Union, Optional
 from loguru import logger
 
-from .data_loader import DataLoader
+from parsers.data_loader import DataLoader
 
 
 class BaseAnalyzer(ABC):

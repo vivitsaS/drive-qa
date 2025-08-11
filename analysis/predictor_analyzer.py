@@ -15,7 +15,7 @@ import pandas as pd
 from scipy import stats
 from loguru import logger
 
-from .data_loader import DataLoader
+from parsers.data_loader import DataLoader
 
 
 class PredictorAnalyzer:
@@ -189,9 +189,12 @@ class PredictorAnalyzer:
         for feature in features:
             try:
                 if df[feature].dtype in ['int64', 'float64']:
-                    # Check if feature has variation
-                    if df[feature].std() == 0:
-                        # Constant feature - no correlation possible
+                    # Check if feature or target has variation
+                    feature_std = df[feature].std()
+                    target_std = df[target].std()
+                    
+                    if feature_std == 0 or target_std == 0 or np.isnan(feature_std) or np.isnan(target_std):
+                        # Constant feature or target - no correlation possible
                         correlations[feature] = {
                             'correlation': 0.0,
                             'p_value': 1.0,
@@ -199,12 +202,20 @@ class PredictorAnalyzer:
                         }
                     else:
                         # Point-biserial correlation for continuous features
-                        correlation, p_value = stats.pointbiserialr(df[target], df[feature])
-                        correlations[feature] = {
-                            'correlation': correlation if not np.isnan(correlation) else 0.0,
-                            'p_value': p_value if not np.isnan(p_value) else 1.0,
-                            'abs_correlation': abs(correlation) if not np.isnan(correlation) else 0.0
-                        }
+                        try:
+                            correlation, p_value = stats.pointbiserialr(df[target], df[feature])
+                            correlations[feature] = {
+                                'correlation': correlation if not np.isnan(correlation) else 0.0,
+                                'p_value': p_value if not np.isnan(p_value) else 1.0,
+                                'abs_correlation': abs(correlation) if not np.isnan(correlation) else 0.0
+                            }
+                        except (ValueError, RuntimeWarning):
+                            # Handle scipy warnings and errors
+                            correlations[feature] = {
+                                'correlation': 0.0,
+                                'p_value': 1.0,
+                                'abs_correlation': 0.0
+                            }
                 else:
                     # Chi-square test for categorical features
                     contingency_table = pd.crosstab(df[feature], df[target])
@@ -238,9 +249,12 @@ class PredictorAnalyzer:
         for feature in features:
             try:
                 if df[feature].dtype in ['int64', 'float64']:
-                    # Check if feature has variation
-                    if df[feature].std() == 0:
-                        # Constant feature - no correlation possible
+                    # Check if feature or target has variation
+                    feature_std = df[feature].std()
+                    target_std = df[target].std()
+                    
+                    if feature_std == 0 or target_std == 0 or np.isnan(feature_std) or np.isnan(target_std):
+                        # Constant feature or target - no correlation possible
                         correlations[feature] = {
                             'correlation': 0.0,
                             'p_value': 1.0,
@@ -248,12 +262,20 @@ class PredictorAnalyzer:
                         }
                     else:
                         # Pearson correlation for continuous features
-                        correlation, p_value = stats.pearsonr(df[target], df[feature])
-                        correlations[feature] = {
-                            'correlation': correlation if not np.isnan(correlation) else 0.0,
-                            'p_value': p_value if not np.isnan(p_value) else 1.0,
-                            'abs_correlation': abs(correlation) if not np.isnan(correlation) else 0.0
-                        }
+                        try:
+                            correlation, p_value = stats.pearsonr(df[target], df[feature])
+                            correlations[feature] = {
+                                'correlation': correlation if not np.isnan(correlation) else 0.0,
+                                'p_value': p_value if not np.isnan(p_value) else 1.0,
+                                'abs_correlation': abs(correlation) if not np.isnan(correlation) else 0.0
+                            }
+                        except (ValueError, RuntimeWarning):
+                            # Handle scipy warnings and errors
+                            correlations[feature] = {
+                                'correlation': 0.0,
+                                'p_value': 1.0,
+                                'abs_correlation': 0.0
+                            }
             except Exception as e:
                 # Handle any other errors
                 correlations[feature] = {

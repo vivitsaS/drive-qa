@@ -13,7 +13,7 @@ from collections import Counter, defaultdict
 import numpy as np
 from loguru import logger
 
-from .data_loader import DataLoader
+from parsers.data_loader import DataLoader
 
 
 class SensorAnalyzer:

@@ -12,7 +12,7 @@ from typing import Dict, List, Any, Tuple
 from pathlib import Path
 from loguru import logger
 
-from .data_loader import DataLoader
+from parsers.data_loader import DataLoader
 from .qa_analyzer import QAAnalyzer
 
 

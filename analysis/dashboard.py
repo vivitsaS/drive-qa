@@ -9,7 +9,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from analysis.qa_analyzer import QAAnalyzer
-from analysis.data_loader import DataLoader
+from parsers.data_loader import DataLoader
 from analysis.vehicle_state_analyzer import VehicleStateAnalyzer
 from analysis.sensor_analyzer import SensorAnalyzer
 from analysis.predictor_analyzer import PredictorAnalyzer

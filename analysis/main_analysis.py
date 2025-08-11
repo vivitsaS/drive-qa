@@ -9,7 +9,7 @@ from typing import Dict, List, Any
 from pathlib import Path
 from loguru import logger
 
-from .data_loader import DataLoader
+from parsers.data_loader import DataLoader
 from .vehicle_state_analyzer import VehicleStateAnalyzer
 from .dashboard_generator import DashboardGenerator
 
