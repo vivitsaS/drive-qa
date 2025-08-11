@@ -38,7 +38,7 @@ class ContextRetriever:
         sorted_keyframe_tokens = sorted(keyframe_tokens, 
                                       key=lambda token: sample_tokens.index(token) if token in sample_tokens else float('inf'))
         
-        logger.info(f"Sorted keyframe tokens by timestamp: {sorted_keyframe_tokens}")
+        # logger.info(f"Sorted keyframe tokens by timestamp: {sorted_keyframe_tokens}")
         return sorted_keyframe_tokens
 
     def get_context_for_keyframe_only  (self):
@@ -64,7 +64,7 @@ class ContextRetriever:
         context_data['samples'] = {keyframe_token: scene_data['samples'][keyframe_token]}
         context_data['key_frames'] = {keyframe_token: scene_data['key_frames'][keyframe_token]}
         
-        logger.info(f"Retrieved context for keyframe token: {keyframe_token}")
+        # logger.info(f"Retrieved context for keyframe token: {keyframe_token}")
         
         return context_data
 
@@ -83,7 +83,7 @@ class ContextRetriever:
         
         # Sort keyframes by timestamp first
         sorted_keyframe_tokens = self._sort_keyframes_by_timestamp(scene_data)
-        logger.info(f"Total keyframes: {len(sorted_keyframe_tokens)}")
+        # logger.info(f"Total keyframes: {len(sorted_keyframe_tokens)}")
         
         # keyframe id is 1 to len(sorted_keyframe_tokens)
         if keyframe_id > len(sorted_keyframe_tokens):
@@ -99,10 +99,10 @@ class ContextRetriever:
         
         # Get keyframes up to and including the target keyframe from the sorted list
         context_keyframe_tokens = sorted_keyframe_tokens[:target_sorted_index+1]
-        logger.info(f"Context keyframe tokens: {context_keyframe_tokens}")
+        # logger.info(f"Context keyframe tokens: {context_keyframe_tokens}")
         context_keyframes = {token: scene_data['key_frames'][token] 
                            for token in context_keyframe_tokens}
-        logger.info(f"Context keyframes: {context_keyframes}")
+        # logger.info(f"Context keyframes: {context_keyframes}")
         
         # Get all sample tokens up to and including the target keyframe token
         # Need to determine which samples come before/at the target keyframe
