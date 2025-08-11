@@ -7,9 +7,7 @@ Analyzes which data fields are the best predictors for different QA types:
 - Identification of key indicators for each question category
 """
 
-import json
-from typing import Dict, List, Any, Union, Tuple
-from collections import Counter, defaultdict
+from typing import Dict, List, Any
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -232,7 +230,7 @@ class PredictorAnalyzer:
                             'p_value': 1.0,
                             'abs_correlation': 0.0
                         }
-            except Exception as e:
+            except Exception:
                 # Handle any other errors
                 correlations[feature] = {
                     'correlation': 0.0,
@@ -276,7 +274,7 @@ class PredictorAnalyzer:
                                 'p_value': 1.0,
                                 'abs_correlation': 0.0
                             }
-            except Exception as e:
+            except Exception:
                 # Handle any other errors
                 correlations[feature] = {
                     'correlation': 0.0,

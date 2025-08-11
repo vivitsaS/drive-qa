@@ -4,9 +4,7 @@ Vehicle State Analyzer
 Analyzes ego vehicle movement and state data for driving behavior insights.
 """
 
-import json
-from typing import Dict, List, Any, Union, Tuple
-from collections import Counter, defaultdict
+from typing import Dict, Any, Union
 import numpy as np
 from loguru import logger
 
@@ -356,7 +354,7 @@ class VehicleStateAnalyzer:
             for sample_token, sample_data in samples.items():
                 ego_pose = sample_data['ego_pose']
                 ego_position = np.array(ego_pose['translation'])
-                ego_velocity = np.array([0, 0, 0])  # Would need to calculate from movement data
+                # ego_velocity = np.array([0, 0, 0])  # Would need to calculate from movement data
                 
                 for annotation in sample_data.get('annotations', []):
                     obj_position = np.array(annotation['translation'])

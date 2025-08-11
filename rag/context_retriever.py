@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import io
 import base64
-from PIL import Image
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any
 
 
 class ContextRetriever:
@@ -138,7 +137,7 @@ class ContextRetriever:
     def get_qa_pair(self, qa_type, qa_pair_serial):
         # qa_serial is 1 to len(qa_pairs)   
 
-        context_data_for_keyframe = self.get_context_for_keyframe_only(self.scene_id, self.keyframe_id, qa_type, qa_pair_serial)
+        context_data_for_keyframe = self.get_context_for_keyframe_only()
         qa_pair_by_qa_type = context_data_for_keyframe["key_frames"][self.keyframe_token]["QA"][qa_type]
         # check if qa_pair_serial is valid
         if qa_pair_serial > len(qa_pair_by_qa_type):

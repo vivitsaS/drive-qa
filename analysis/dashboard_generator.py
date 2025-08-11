@@ -4,11 +4,9 @@ Dashboard Generator
 Creates visualizations and dashboards for the analysis results.
 """
 
-import json
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pandas as pd
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any
 from pathlib import Path
 from loguru import logger
 
@@ -45,7 +43,7 @@ class DashboardGenerator:
         """
         logger.info("Creating question distribution charts...")
         
-        total_qa_distribution = self.qa_analyzer.analyze_scenes()
+        # total_qa_distribution = self.qa_analyzer.analyze_scenes()  # Unused variable
         # Create figure with subplots
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
         fig.suptitle('QA Distribution Analysis Across Scenes', fontsize=16, fontweight='bold')

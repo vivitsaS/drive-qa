@@ -7,10 +7,8 @@ Analyzes camera and sensor data patterns across scenes:
 - Multi-modal sensor fusion patterns
 """
 
-import json
-from typing import Dict, List, Any, Union
-from collections import Counter, defaultdict
-import numpy as np
+from typing import Dict, Any
+from collections import defaultdict
 from loguru import logger
 
 from parsers.data_loader import DataLoader

@@ -1,6 +1,5 @@
 import streamlit as st
 import plotly.express as px
-import plotly.graph_objects as go
 import pandas as pd
 import sys
 import os
@@ -28,7 +27,7 @@ def main():
     totals = qa_analyzer.analyze_scenes()  # This gets data for all scenes
     
     # Extract totals
-    total = totals["total"]
+    # total = totals["total"]  # Unused variable
     
     # Create pie chart data
     qa_types = ['perception', 'planning', 'prediction', 'behavior']

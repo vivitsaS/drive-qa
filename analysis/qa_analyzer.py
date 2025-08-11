@@ -8,12 +8,10 @@ Analyzes question-answer pairs across different levels:
 """
 
 from collections import Counter, defaultdict
-import json
 import re
-from typing import Any, Dict, List, Tuple, Union, Optional
+from typing import Any, Dict, List, Union
 
 from loguru import logger
-import numpy as np
 
 from .base_analyzer import BaseAnalyzer
 
