@@ -501,3 +501,86 @@ class ContextRetriever:
             'straight_segments': straight_segments,
             'stopping_periods': stopping_periods
         }
+
+    def get_sensor_data_upto_sample_token(self):
+        """
+        Get sensor data summary for the specific keyframe token.
+        
+        Returns:
+            Dictionary containing sensor detection data and object annotations
+        """
+        sample_token = self.keyframe_token
+        
+        try:
+            # Use cached scene data
+            if self._scene_data is None:
+                self._scene_data = self.data_loader.load_scene_data(self.scene_id)
+            scene_data = self._scene_data
+            
+            # Get the specific sample for this keyframe
+            if sample_token not in scene_data['samples']:
+                logger.error(f"Sample token {sample_token} not found in scene {self.scene_id}")
+                return {}
+            
+            sample_data = scene_data['samples'][sample_token]
+            annotations = sample_data['annotations']
+            sensor_data = sample_data['sensor_data']
+            
+            # Process annotations to get object detection summary
+            object_summary = {}
+            category_counts = {}
+            sensor_detection_stats = {'lidar_detections': 0, 'radar_detections': 0}
+            visibility_stats = {}
+            
+            for annotation in annotations:
+                category = annotation['category']
+                category_counts[category] = category_counts.get(category, 0) + 1
+                
+                # Count sensor detections
+                sensor_detection_stats['lidar_detections'] += annotation['num_lidar_pts']
+                sensor_detection_stats['radar_detections'] += annotation['num_radar_pts']
+                
+                # Track visibility levels
+                visibility_level = annotation['visibility']['level']
+                visibility_stats[visibility_level] = visibility_stats.get(visibility_level, 0) + 1
+            
+            # Create sensor data summary
+            sensor_summary = {
+                'scene_id': self.scene_id,
+                'sample_token': sample_token,
+                'timestamp': sample_data['timestamp'],
+                
+                # Object detection summary
+                'object_detection': {
+                    'total_objects': len(annotations),
+                    'category_counts': category_counts,
+                    'unique_categories': list(category_counts.keys()),
+                    'num_categories': len(category_counts)
+                },
+                
+                # Sensor detection statistics
+                'sensor_detections': {
+                    'total_lidar_points': sensor_detection_stats['lidar_detections'],
+                    'total_radar_points': sensor_detection_stats['radar_detections'],
+                    'objects_with_lidar': len([a for a in annotations if a['num_lidar_pts'] > 0]),
+                    'objects_with_radar': len([a for a in annotations if a['num_radar_pts'] > 0])
+                },
+                
+                # Visibility statistics
+                'visibility_distribution': visibility_stats,
+                
+                # Available sensors
+                'available_sensors': {
+                    'sensor_types': list(sensor_data.keys()),
+                    'camera_sensors': [s for s in sensor_data.keys() if 'CAM_' in s],
+                    'radar_sensors': [s for s in sensor_data.keys() if 'RADAR_' in s],
+                    'lidar_sensors': [s for s in sensor_data.keys() if 'LIDAR_' in s]
+                }
+            }
+            
+            logger.info(f"Retrieved sensor data for sample token: {sample_token} with {len(annotations)} detected objects")
+            return sensor_summary
+            
+        except Exception as e:
+            logger.error(f"Error extracting sensor data for sample token {sample_token}: {e}")
+            return {}
