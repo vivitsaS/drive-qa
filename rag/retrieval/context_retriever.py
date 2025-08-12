@@ -16,7 +16,7 @@ class ContextRetriever:
         self.keyframe_token = self.data_loader._assign_keyframe_token(scene_id, keyframe_id)
         # Cache scene data to avoid reloading
         self._scene_data = None
-        self.context_data = self.get_context_upto_keyframe(scene_id, keyframe_id)
+        self.context_data = self.get_context_upto_keyframe()
 
     def _sort_keyframes_by_timestamp(self, scene_data):
         """
@@ -66,27 +66,31 @@ class ContextRetriever:
         # logger.info(f"Retrieved context for keyframe token: {keyframe_token}")
         
         return context_data
+    
+    def get_key_objects_in_keyframe(self):
+        keyframe_data = self.get_context_for_keyframe_only()["key_frames"][self.keyframe_token]["key_object_infos"]
+        return keyframe_data
 
 
-    def get_context_upto_keyframe(self, scene_id, keyframe_id):
+    def get_context_upto_keyframe(self):
         # get scene data - cache it for reuse
         if self._scene_data is None:
-            self._scene_data = self.data_loader.load_scene_data(scene_id)
+            self._scene_data = self.data_loader.load_scene_data(self.scene_id)
         scene_data = self._scene_data
         
         # Create a copy to avoid modifying original data
         context_data = scene_data.copy()
         
         # Get the target keyframe token for the given keyframe_id (from unsorted list)
-        target_keyframe_token = self.data_loader._assign_keyframe_token(scene_id, keyframe_id)
+        target_keyframe_token = self.data_loader._assign_keyframe_token(self.scene_id, self.keyframe_id)
         
         # Sort keyframes by timestamp first
         sorted_keyframe_tokens = self._sort_keyframes_by_timestamp(scene_data)
         # logger.info(f"Total keyframes: {len(sorted_keyframe_tokens)}")
         
         # keyframe id is 1 to len(sorted_keyframe_tokens)
-        if keyframe_id > len(sorted_keyframe_tokens):
-            logger.error(f"keyframe_id {keyframe_id} exceeds available keyframes ({len(sorted_keyframe_tokens)})")
+        if self.keyframe_id > len(sorted_keyframe_tokens):
+            logger.error(f"keyframe_id {self.keyframe_id} exceeds available keyframes ({len(sorted_keyframe_tokens)})")
             return None
         
         # Find the position of target keyframe in the sorted list
