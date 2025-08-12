@@ -1,0 +1,864 @@
+
+====================================================================================================
+COMPREHENSIVE DRIVELM DATASET ANALYSIS REPORT
+====================================================================================================
+Generated on: 2025-08-06 16:07:41
+Total Scenes Analyzed: 6
+
+This report provides detailed analysis of autonomous driving behavior across all scenes
+in the DriveLM dataset, including driving style, safety, risk assessment, and system performance.
+
+====================================================================================================
+
+================================================================================
+SCENE 1 ANALYSIS REPORT
+================================================================================
+
+SCENE INFORMATION:
+- Scene Name: scene-0061
+- Scene Description: The ego vehicle makes a left turn at the traffic lights, and after encountering the construction section on the right side, it turns left at the first fork on the left side.
+- Number of Samples: 39
+
+==================================================
+VELOCITY AND MOVEMENT SUMMARY:
+==================================================
+- Average Speed: 4.84 m/s (17.4 km/h)
+- Maximum Speed: 8.99 m/s (32.4 km/h)
+- Minimum Speed: 2.21 m/s (8.0 km/h)
+- Speed Standard Deviation: 2.12 m/s
+- Average Acceleration: 0.76 m/s²
+- Maximum Acceleration: 2.95 m/s²
+- Total Distance Traveled: 91.04 meters
+- Total Duration: 18.99 seconds
+- Movement Segments:
+  * Turning Segments: 2
+  * Straight Segments: 2
+  * Stopping Periods: 1
+
+==================================================
+DRIVING STYLE ANALYSIS:
+==================================================
+- Overall Style: MODERATE
+- Style Score: 0.695 (0=conservative, 1=aggressive)
+- Speed Component: 0.968
+- Acceleration Component: 0.378
+- Curvature Component: 0.739
+- Average Speed: 4.84 m/s
+- Maximum Speed: 8.99 m/s
+- Average Acceleration: 0.76 m/s²
+- Maximum Acceleration: 2.95 m/s²
+- Average Curvature: 0.0111
+
+==================================================
+SMOOTHNESS ANALYSIS:
+==================================================
+- Smoothness Level: SMOOTH
+- Smoothness Score: 0.763 (0=rough, 1=smooth)
+- Average Jerk: 2.27 m/s³
+- Maximum Jerk: 16.04 m/s³
+- Average Angular Acceleration: 0.0399 rad/s²
+- Maximum Angular Acceleration: 0.2554 rad/s²
+
+==================================================
+PREDICTABILITY ANALYSIS:
+==================================================
+- Predictability Level: UNPREDICTABLE
+- Predictability Score: 0.355 (0=unpredictable, 1=predictable)
+- Speed Consistency: 0.292
+- Acceleration Consistency: 0.712
+- Curvature Consistency: 0.060
+
+==================================================
+RISK ASSESSMENT:
+==================================================
+- Overall Risk Level: HIGH
+- Risk Score: 0.829 (0=low, 1=high)
+- Speed Risk: 0.899
+- Acceleration Risk: 0.589
+- Jerk Risk: 1.000
+- Maximum Speed: 8.99 m/s
+- Maximum Acceleration: 2.95 m/s²
+- Maximum Jerk: 16.04 m/s³
+
+==================================================
+SAFETY ANALYSIS:
+==================================================
+- Average Safety Margin: 32.38 meters
+- Minimum Safety Margin: 1.97 meters
+- Close Interactions (<5m): 40
+- High Risk Interactions (<2m): 1
+- Safety Score: 0.000 (0=unsafe, 1=safe)
+
+==================================================
+COLLISION RISK ASSESSMENT:
+==================================================
+- Collision Risk Level: LOW
+- Average Collision Risk: 0.0142
+- Maximum Collision Risk: 0.8027
+- High Risk Objects (>50% risk): 40
+
+==================================================
+TRAFFIC COMPLIANCE:
+==================================================
+- Compliance Level: GOOD
+- Overall Compliance Score: 0.947
+- Speed Compliance Rate: 89.5%
+- Acceleration Compliance Rate: 100.0%
+- Speed Violations: 4
+- Acceleration Violations: 0
+
+==================================================
+SYSTEM PERFORMANCE:
+==================================================
+- System Health: GOOD
+- Total Issues: 0
+- High Severity Issues: 0
+- Medium Severity Issues: 0
+
+==================================================
+EVENT CORRELATION:
+==================================================
+- Total Events: 8
+- Events with Images: 8
+- Event Types: {'perception': 8}
+
+==================================================
+DATA QUALITY ASSESSMENT:
+==================================================
+- Overall Quality Score: 1.000 (0=poor, 1=excellent)
+- Data Completeness Rate: 100.0%
+- Temporal Consistency: ✓
+- Annotation Correlation Rate: 100.0%
+- Sensor Reliability:
+  * CAM_FRONT: 100.0%
+  * LIDAR_TOP: 100.0%
+
+- Missing Data Issues: 0
+
+==================================================
+SUMMARY AND RECOMMENDATIONS:
+==================================================
+• The vehicle demonstrates moderate driving behavior with balanced speed and acceleration
+• HIGH RISK: The vehicle operates at dangerous speeds and acceleration levels
+• SAFETY CONCERN: Multiple close interactions with objects detected
+• GOOD COMPLIANCE: Generally follows traffic rules with minor violations
+• EXCELLENT DATA QUALITY: All sensors functioning properly with complete data
+• GOOD SYSTEM HEALTH: No performance issues detected
+
+
+================================================================================
+
+================================================================================
+SCENE 2 ANALYSIS REPORT
+================================================================================
+
+SCENE INFORMATION:
+- Scene Name: scene-0655
+- Scene Description: The ego vehicle proceeds forward along the current road, continuing straight after passing several intersections on the right side.
+- Number of Samples: 41
+
+==================================================
+VELOCITY AND MOVEMENT SUMMARY:
+==================================================
+- Average Speed: 8.24 m/s (29.7 km/h)
+- Maximum Speed: 9.01 m/s (32.4 km/h)
+- Minimum Speed: 6.22 m/s (22.4 km/h)
+- Speed Standard Deviation: 0.68 m/s
+- Average Acceleration: 0.66 m/s²
+- Maximum Acceleration: 3.50 m/s²
+- Total Distance Traveled: 162.17 meters
+- Total Duration: 19.72 seconds
+- Movement Segments:
+  * Turning Segments: 0
+  * Straight Segments: 0
+  * Stopping Periods: 1
+
+==================================================
+DRIVING STYLE ANALYSIS:
+==================================================
+- Overall Style: MODERATE
+- Style Score: 0.459 (0=conservative, 1=aggressive)
+- Speed Component: 1.000
+- Acceleration Component: 0.332
+- Curvature Component: 0.046
+- Average Speed: 8.24 m/s
+- Maximum Speed: 9.01 m/s
+- Average Acceleration: 0.66 m/s²
+- Maximum Acceleration: 3.50 m/s²
+- Average Curvature: 0.0007
+
+==================================================
+SMOOTHNESS ANALYSIS:
+==================================================
+- Smoothness Level: SMOOTH
+- Smoothness Score: 0.808 (0=rough, 1=smooth)
+- Average Jerk: 1.88 m/s³
+- Maximum Jerk: 7.23 m/s³
+- Average Angular Acceleration: 0.0157 rad/s²
+- Maximum Angular Acceleration: 0.0555 rad/s²
+
+==================================================
+PREDICTABILITY ANALYSIS:
+==================================================
+- Predictability Level: PREDICTABLE
+- Predictability Score: 0.800 (0=unpredictable, 1=predictable)
+- Speed Consistency: 0.774
+- Acceleration Consistency: 0.679
+- Curvature Consistency: 0.947
+
+==================================================
+RISK ASSESSMENT:
+==================================================
+- Overall Risk Level: HIGH
+- Risk Score: 0.775 (0=low, 1=high)
+- Speed Risk: 0.901
+- Acceleration Risk: 0.700
+- Jerk Risk: 0.723
+- Maximum Speed: 9.01 m/s
+- Maximum Acceleration: 3.50 m/s²
+- Maximum Jerk: 7.23 m/s³
+
+==================================================
+SAFETY ANALYSIS:
+==================================================
+- Average Safety Margin: 35.15 meters
+- Minimum Safety Margin: 3.54 meters
+- Close Interactions (<5m): 7
+- High Risk Interactions (<2m): 0
+- Safety Score: 0.300 (0=unsafe, 1=safe)
+
+==================================================
+COLLISION RISK ASSESSMENT:
+==================================================
+- Collision Risk Level: LOW
+- Average Collision Risk: 0.0118
+- Maximum Collision Risk: 0.6455
+- High Risk Objects (>50% risk): 7
+
+==================================================
+TRAFFIC COMPLIANCE:
+==================================================
+- Compliance Level: POOR
+- Overall Compliance Score: 0.600
+- Speed Compliance Rate: 22.5%
+- Acceleration Compliance Rate: 97.4%
+- Speed Violations: 31
+- Acceleration Violations: 1
+
+==================================================
+SYSTEM PERFORMANCE:
+==================================================
+- System Health: GOOD
+- Total Issues: 0
+- High Severity Issues: 0
+- Medium Severity Issues: 0
+
+==================================================
+EVENT CORRELATION:
+==================================================
+- Total Events: 5
+- Events with Images: 5
+- Event Types: {'perception': 5}
+
+==================================================
+DATA QUALITY ASSESSMENT:
+==================================================
+- Overall Quality Score: 1.000 (0=poor, 1=excellent)
+- Data Completeness Rate: 100.0%
+- Temporal Consistency: ✓
+- Annotation Correlation Rate: 100.0%
+- Sensor Reliability:
+  * CAM_FRONT: 100.0%
+  * LIDAR_TOP: 100.0%
+
+- Missing Data Issues: 0
+
+==================================================
+SUMMARY AND RECOMMENDATIONS:
+==================================================
+• The vehicle demonstrates moderate driving behavior with balanced speed and acceleration
+• HIGH RISK: The vehicle operates at dangerous speeds and acceleration levels
+• SAFETY CONCERN: Multiple close interactions with objects detected
+• COMPLIANCE ISSUES: Multiple traffic rule violations detected
+• EXCELLENT DATA QUALITY: All sensors functioning properly with complete data
+• GOOD SYSTEM HEALTH: No performance issues detected
+
+
+================================================================================
+
+================================================================================
+SCENE 3 ANALYSIS REPORT
+================================================================================
+
+SCENE INFORMATION:
+- Scene Name: scene-0757
+- Scene Description: The ego vehicle progresses along the current road, halting at the intersection of traffic lights, awaiting its turn.
+- Number of Samples: 41
+
+==================================================
+VELOCITY AND MOVEMENT SUMMARY:
+==================================================
+- Average Speed: 1.45 m/s (5.2 km/h)
+- Maximum Speed: 5.14 m/s (18.5 km/h)
+- Minimum Speed: 0.00 m/s (0.0 km/h)
+- Speed Standard Deviation: 1.90 m/s
+- Average Acceleration: 0.35 m/s²
+- Maximum Acceleration: 2.30 m/s²
+- Total Distance Traveled: 27.31 meters
+- Total Duration: 19.77 seconds
+- Movement Segments:
+  * Turning Segments: 2
+  * Straight Segments: 2
+  * Stopping Periods: 1
+
+==================================================
+DRIVING STYLE ANALYSIS:
+==================================================
+- Overall Style: MODERATE
+- Style Score: 0.488 (0=conservative, 1=aggressive)
+- Speed Component: 0.290
+- Acceleration Component: 0.175
+- Curvature Component: 1.000
+- Average Speed: 1.45 m/s
+- Maximum Speed: 5.14 m/s
+- Average Acceleration: 0.35 m/s²
+- Maximum Acceleration: 2.30 m/s²
+- Average Curvature: 765.1238
+
+==================================================
+SMOOTHNESS ANALYSIS:
+==================================================
+- Smoothness Level: SMOOTH
+- Smoothness Score: 0.905 (0=rough, 1=smooth)
+- Average Jerk: 0.92 m/s³
+- Maximum Jerk: 12.05 m/s³
+- Average Angular Acceleration: 0.0121 rad/s²
+- Maximum Angular Acceleration: 0.0678 rad/s²
+
+==================================================
+PREDICTABILITY ANALYSIS:
+==================================================
+- Predictability Level: UNPREDICTABLE
+- Predictability Score: 0.367 (0=unpredictable, 1=predictable)
+- Speed Consistency: 0.367
+- Acceleration Consistency: 0.733
+- Curvature Consistency: 0.000
+
+==================================================
+RISK ASSESSMENT:
+==================================================
+- Overall Risk Level: MEDIUM
+- Risk Score: 0.658 (0=low, 1=high)
+- Speed Risk: 0.514
+- Acceleration Risk: 0.459
+- Jerk Risk: 1.000
+- Maximum Speed: 5.14 m/s
+- Maximum Acceleration: 2.30 m/s²
+- Maximum Jerk: 12.05 m/s³
+
+==================================================
+SAFETY ANALYSIS:
+==================================================
+- Average Safety Margin: 24.13 meters
+- Minimum Safety Margin: 2.43 meters
+- Close Interactions (<5m): 45
+- High Risk Interactions (<2m): 0
+- Safety Score: 0.000 (0=unsafe, 1=safe)
+
+==================================================
+COLLISION RISK ASSESSMENT:
+==================================================
+- Collision Risk Level: LOW
+- Average Collision Risk: 0.0703
+- Maximum Collision Risk: 0.7566
+- High Risk Objects (>50% risk): 45
+
+==================================================
+TRAFFIC COMPLIANCE:
+==================================================
+- Compliance Level: GOOD
+- Overall Compliance Score: 1.000
+- Speed Compliance Rate: 100.0%
+- Acceleration Compliance Rate: 100.0%
+- Speed Violations: 0
+- Acceleration Violations: 0
+
+==================================================
+SYSTEM PERFORMANCE:
+==================================================
+- System Health: GOOD
+- Total Issues: 0
+- High Severity Issues: 0
+- Medium Severity Issues: 0
+
+==================================================
+EVENT CORRELATION:
+==================================================
+- Total Events: 8
+- Events with Images: 8
+- Event Types: {'perception': 8}
+
+==================================================
+DATA QUALITY ASSESSMENT:
+==================================================
+- Overall Quality Score: 1.000 (0=poor, 1=excellent)
+- Data Completeness Rate: 100.0%
+- Temporal Consistency: ✓
+- Annotation Correlation Rate: 100.0%
+- Sensor Reliability:
+  * CAM_FRONT: 100.0%
+  * LIDAR_TOP: 100.0%
+
+- Missing Data Issues: 0
+
+==================================================
+SUMMARY AND RECOMMENDATIONS:
+==================================================
+• The vehicle demonstrates moderate driving behavior with balanced speed and acceleration
+• MEDIUM RISK: The vehicle shows some concerning behavior patterns
+• SAFETY CONCERN: Multiple close interactions with objects detected
+• GOOD COMPLIANCE: Generally follows traffic rules with minor violations
+• EXCELLENT DATA QUALITY: All sensors functioning properly with complete data
+• GOOD SYSTEM HEALTH: No performance issues detected
+
+
+================================================================================
+
+================================================================================
+SCENE 4 ANALYSIS REPORT
+================================================================================
+
+SCENE INFORMATION:
+- Scene Name: scene-1077
+- Scene Description: The ego vehicle continues straight along the current road after making a left turn.
+- Number of Samples: 41
+
+==================================================
+VELOCITY AND MOVEMENT SUMMARY:
+==================================================
+- Average Speed: 12.55 m/s (45.2 km/h)
+- Maximum Speed: 15.12 m/s (54.4 km/h)
+- Minimum Speed: 6.24 m/s (22.5 km/h)
+- Speed Standard Deviation: 2.58 m/s
+- Average Acceleration: 0.74 m/s²
+- Maximum Acceleration: 3.05 m/s²
+- Total Distance Traveled: 250.29 meters
+- Total Duration: 19.83 seconds
+- Movement Segments:
+  * Turning Segments: 1
+  * Straight Segments: 0
+  * Stopping Periods: 1
+
+==================================================
+DRIVING STYLE ANALYSIS:
+==================================================
+- Overall Style: MODERATE
+- Style Score: 0.527 (0=conservative, 1=aggressive)
+- Speed Component: 1.000
+- Acceleration Component: 0.368
+- Curvature Component: 0.213
+- Average Speed: 12.55 m/s
+- Maximum Speed: 15.12 m/s
+- Average Acceleration: 0.74 m/s²
+- Maximum Acceleration: 3.05 m/s²
+- Average Curvature: 0.0032
+
+==================================================
+SMOOTHNESS ANALYSIS:
+==================================================
+- Smoothness Level: SMOOTH
+- Smoothness Score: 0.868 (0=rough, 1=smooth)
+- Average Jerk: 1.22 m/s³
+- Maximum Jerk: 6.28 m/s³
+- Average Angular Acceleration: 0.0365 rad/s²
+- Maximum Angular Acceleration: 0.3569 rad/s²
+
+==================================================
+PREDICTABILITY ANALYSIS:
+==================================================
+- Predictability Level: UNPREDICTABLE
+- Predictability Score: 0.304 (0=unpredictable, 1=predictable)
+- Speed Consistency: 0.141
+- Acceleration Consistency: 0.627
+- Curvature Consistency: 0.142
+
+==================================================
+RISK ASSESSMENT:
+==================================================
+- Overall Risk Level: HIGH
+- Risk Score: 0.746 (0=low, 1=high)
+- Speed Risk: 1.000
+- Acceleration Risk: 0.610
+- Jerk Risk: 0.628
+- Maximum Speed: 15.12 m/s
+- Maximum Acceleration: 3.05 m/s²
+- Maximum Jerk: 6.28 m/s³
+
+==================================================
+SAFETY ANALYSIS:
+==================================================
+- Average Safety Margin: 46.96 meters
+- Minimum Safety Margin: 3.62 meters
+- Close Interactions (<5m): 1
+- High Risk Interactions (<2m): 0
+- Safety Score: 0.900 (0=unsafe, 1=safe)
+
+==================================================
+COLLISION RISK ASSESSMENT:
+==================================================
+- Collision Risk Level: LOW
+- Average Collision Risk: 0.0020
+- Maximum Collision Risk: 0.6384
+- High Risk Objects (>50% risk): 1
+
+==================================================
+TRAFFIC COMPLIANCE:
+==================================================
+- Compliance Level: POOR
+- Overall Compliance Score: 0.537
+- Speed Compliance Rate: 10.0%
+- Acceleration Compliance Rate: 97.4%
+- Speed Violations: 36
+- Acceleration Violations: 1
+
+==================================================
+SYSTEM PERFORMANCE:
+==================================================
+- System Health: GOOD
+- Total Issues: 0
+- High Severity Issues: 0
+- Medium Severity Issues: 0
+
+==================================================
+EVENT CORRELATION:
+==================================================
+- Total Events: 4
+- Events with Images: 4
+- Event Types: {'perception': 4}
+
+==================================================
+DATA QUALITY ASSESSMENT:
+==================================================
+- Overall Quality Score: 1.000 (0=poor, 1=excellent)
+- Data Completeness Rate: 100.0%
+- Temporal Consistency: ✓
+- Annotation Correlation Rate: 100.0%
+- Sensor Reliability:
+  * CAM_FRONT: 100.0%
+  * LIDAR_TOP: 100.0%
+
+- Missing Data Issues: 0
+
+==================================================
+SUMMARY AND RECOMMENDATIONS:
+==================================================
+• The vehicle demonstrates moderate driving behavior with balanced speed and acceleration
+• HIGH RISK: The vehicle operates at dangerous speeds and acceleration levels
+• GOOD SAFETY: Maintains appropriate distances from objects
+• COMPLIANCE ISSUES: Multiple traffic rule violations detected
+• EXCELLENT DATA QUALITY: All sensors functioning properly with complete data
+• GOOD SYSTEM HEALTH: No performance issues detected
+
+
+================================================================================
+
+================================================================================
+SCENE 5 ANALYSIS REPORT
+================================================================================
+
+SCENE INFORMATION:
+- Scene Name: scene-1094
+- Scene Description: After the ego vehicle made a left turn at the intersection with the traffic lights, it proceeded straight while remaining in the left lane.
+- Number of Samples: 40
+
+==================================================
+VELOCITY AND MOVEMENT SUMMARY:
+==================================================
+- Average Speed: 6.31 m/s (22.7 km/h)
+- Maximum Speed: 12.62 m/s (45.4 km/h)
+- Minimum Speed: 0.14 m/s (0.5 km/h)
+- Speed Standard Deviation: 4.04 m/s
+- Average Acceleration: 0.90 m/s²
+- Maximum Acceleration: 2.84 m/s²
+- Total Distance Traveled: 124.15 meters
+- Total Duration: 19.32 seconds
+- Movement Segments:
+  * Turning Segments: 2
+  * Straight Segments: 1
+  * Stopping Periods: 1
+
+==================================================
+DRIVING STYLE ANALYSIS:
+==================================================
+- Overall Style: AGGRESSIVE
+- Style Score: 0.816 (0=conservative, 1=aggressive)
+- Speed Component: 1.000
+- Acceleration Component: 0.449
+- Curvature Component: 1.000
+- Average Speed: 6.31 m/s
+- Maximum Speed: 12.62 m/s
+- Average Acceleration: 0.90 m/s²
+- Maximum Acceleration: 2.84 m/s²
+- Average Curvature: 0.0171
+
+==================================================
+SMOOTHNESS ANALYSIS:
+==================================================
+- Smoothness Level: ROUGH
+- Smoothness Score: 0.314 (0=rough, 1=smooth)
+- Average Jerk: 1.86 m/s³
+- Maximum Jerk: 11.60 m/s³
+- Average Angular Acceleration: 2.4767 rad/s²
+- Maximum Angular Acceleration: 74.2381 rad/s²
+
+==================================================
+PREDICTABILITY ANALYSIS:
+==================================================
+- Predictability Level: UNPREDICTABLE
+- Predictability Score: 0.223 (0=unpredictable, 1=predictable)
+- Speed Consistency: 0.000
+- Acceleration Consistency: 0.670
+- Curvature Consistency: 0.000
+
+==================================================
+RISK ASSESSMENT:
+==================================================
+- Overall Risk Level: HIGH
+- Risk Score: 0.856 (0=low, 1=high)
+- Speed Risk: 1.000
+- Acceleration Risk: 0.568
+- Jerk Risk: 1.000
+- Maximum Speed: 12.62 m/s
+- Maximum Acceleration: 2.84 m/s²
+- Maximum Jerk: 11.60 m/s³
+
+==================================================
+SAFETY ANALYSIS:
+==================================================
+- Average Safety Margin: 29.40 meters
+- Minimum Safety Margin: 3.18 meters
+- Close Interactions (<5m): 9
+- High Risk Interactions (<2m): 0
+- Safety Score: 0.100 (0=unsafe, 1=safe)
+
+==================================================
+COLLISION RISK ASSESSMENT:
+==================================================
+- Collision Risk Level: LOW
+- Average Collision Risk: 0.0094
+- Maximum Collision Risk: 0.6819
+- High Risk Objects (>50% risk): 9
+
+==================================================
+TRAFFIC COMPLIANCE:
+==================================================
+- Compliance Level: MODERATE
+- Overall Compliance Score: 0.795
+- Speed Compliance Rate: 59.0%
+- Acceleration Compliance Rate: 100.0%
+- Speed Violations: 16
+- Acceleration Violations: 0
+
+==================================================
+SYSTEM PERFORMANCE:
+==================================================
+- System Health: GOOD
+- Total Issues: 0
+- High Severity Issues: 0
+- Medium Severity Issues: 0
+
+==================================================
+EVENT CORRELATION:
+==================================================
+- Total Events: 8
+- Events with Images: 8
+- Event Types: {'perception': 8}
+
+==================================================
+DATA QUALITY ASSESSMENT:
+==================================================
+- Overall Quality Score: 1.000 (0=poor, 1=excellent)
+- Data Completeness Rate: 100.0%
+- Temporal Consistency: ✓
+- Annotation Correlation Rate: 100.0%
+- Sensor Reliability:
+  * CAM_FRONT: 100.0%
+  * LIDAR_TOP: 100.0%
+
+- Missing Data Issues: 0
+
+==================================================
+SUMMARY AND RECOMMENDATIONS:
+==================================================
+• The vehicle exhibits aggressive driving behavior with high speeds and acceleration
+• HIGH RISK: The vehicle operates at dangerous speeds and acceleration levels
+• SAFETY CONCERN: Multiple close interactions with objects detected
+• COMPLIANCE ISSUES: Multiple traffic rule violations detected
+• EXCELLENT DATA QUALITY: All sensors functioning properly with complete data
+• GOOD SYSTEM HEALTH: No performance issues detected
+
+
+================================================================================
+
+================================================================================
+SCENE 6 ANALYSIS REPORT
+================================================================================
+
+SCENE INFORMATION:
+- Scene Name: scene-1100
+- Scene Description: The ego vehicle parked at the intersection, awaiting the passage of the traffic on the right before proceeding with the right turn.
+- Number of Samples: 40
+
+==================================================
+VELOCITY AND MOVEMENT SUMMARY:
+==================================================
+- Average Speed: 0.05 m/s (0.2 km/h)
+- Maximum Speed: 0.57 m/s (2.1 km/h)
+- Minimum Speed: 0.00 m/s (0.0 km/h)
+- Speed Standard Deviation: 0.13 m/s
+- Average Acceleration: 0.09 m/s²
+- Maximum Acceleration: 0.96 m/s²
+- Total Distance Traveled: 1.11 meters
+- Total Duration: 19.37 seconds
+- Movement Segments:
+  * Turning Segments: 1
+  * Straight Segments: 0
+  * Stopping Periods: 1
+
+==================================================
+DRIVING STYLE ANALYSIS:
+==================================================
+- Overall Style: MODERATE
+- Style Score: 0.353 (0=conservative, 1=aggressive)
+- Speed Component: 0.010
+- Acceleration Component: 0.047
+- Curvature Component: 1.000
+- Average Speed: 0.05 m/s
+- Maximum Speed: 0.57 m/s
+- Average Acceleration: 0.09 m/s²
+- Maximum Acceleration: 0.96 m/s²
+- Average Curvature: 4552.5388
+
+==================================================
+SMOOTHNESS ANALYSIS:
+==================================================
+- Smoothness Level: SMOOTH
+- Smoothness Score: 0.962 (0=rough, 1=smooth)
+- Average Jerk: 0.35 m/s³
+- Maximum Jerk: 4.53 m/s³
+- Average Angular Acceleration: 0.0143 rad/s²
+- Maximum Angular Acceleration: 0.1465 rad/s²
+
+==================================================
+PREDICTABILITY ANALYSIS:
+==================================================
+- Predictability Level: MODERATE
+- Predictability Score: 0.618 (0=unpredictable, 1=predictable)
+- Speed Consistency: 0.957
+- Acceleration Consistency: 0.898
+- Curvature Consistency: 0.000
+
+==================================================
+RISK ASSESSMENT:
+==================================================
+- Overall Risk Level: LOW
+- Risk Score: 0.234 (0=low, 1=high)
+- Speed Risk: 0.057
+- Acceleration Risk: 0.191
+- Jerk Risk: 0.453
+- Maximum Speed: 0.57 m/s
+- Maximum Acceleration: 0.96 m/s²
+- Maximum Jerk: 4.53 m/s³
+
+==================================================
+SAFETY ANALYSIS:
+==================================================
+- Average Safety Margin: 27.72 meters
+- Minimum Safety Margin: 3.93 meters
+- Close Interactions (<5m): 5
+- High Risk Interactions (<2m): 0
+- Safety Score: 0.500 (0=unsafe, 1=safe)
+
+==================================================
+COLLISION RISK ASSESSMENT:
+==================================================
+- Collision Risk Level: LOW
+- Average Collision Risk: 0.0379
+- Maximum Collision Risk: 0.6069
+- High Risk Objects (>50% risk): 5
+
+==================================================
+TRAFFIC COMPLIANCE:
+==================================================
+- Compliance Level: GOOD
+- Overall Compliance Score: 1.000
+- Speed Compliance Rate: 100.0%
+- Acceleration Compliance Rate: 100.0%
+- Speed Violations: 0
+- Acceleration Violations: 0
+
+==================================================
+SYSTEM PERFORMANCE:
+==================================================
+- System Health: GOOD
+- Total Issues: 0
+- High Severity Issues: 0
+- Medium Severity Issues: 0
+
+==================================================
+EVENT CORRELATION:
+==================================================
+- Total Events: 5
+- Events with Images: 5
+- Event Types: {'perception': 5}
+
+==================================================
+DATA QUALITY ASSESSMENT:
+==================================================
+- Overall Quality Score: 1.000 (0=poor, 1=excellent)
+- Data Completeness Rate: 100.0%
+- Temporal Consistency: ✓
+- Annotation Correlation Rate: 100.0%
+- Sensor Reliability:
+  * CAM_FRONT: 100.0%
+  * LIDAR_TOP: 100.0%
+
+- Missing Data Issues: 0
+
+==================================================
+SUMMARY AND RECOMMENDATIONS:
+==================================================
+• The vehicle demonstrates moderate driving behavior with balanced speed and acceleration
+• LOW RISK: The vehicle operates within safe parameters
+• GOOD SAFETY: Maintains appropriate distances from objects
+• GOOD COMPLIANCE: Generally follows traffic rules with minor violations
+• EXCELLENT DATA QUALITY: All sensors functioning properly with complete data
+• GOOD SYSTEM HEALTH: No performance issues detected
+
+
+================================================================================
+
+====================================================================================================
+OVERALL DATASET SUMMARY
+====================================================================================================
+
+Dataset Overview:
+- Total Scenes: 6
+- Analysis Period: 2025-08-06 16:07:57
+- Data Source: concatenated_data.json
+
+Key Findings:
+• This dataset contains 6 diverse driving scenarios
+• Each scene provides comprehensive multimodal data including camera images, sensor data, and QA annotations
+• The analysis reveals varying levels of driving complexity, risk, and system performance across scenarios
+
+Recommendations for Further Analysis:
+1. Cross-scene comparison to identify patterns in driving behavior
+2. Temporal analysis to understand how driving patterns evolve
+3. Correlation analysis between QA data and driving behavior
+4. Performance benchmarking against human driving standards
+5. Safety validation and risk mitigation strategies
+
+====================================================================================================
+END OF REPORT
+====================================================================================================
