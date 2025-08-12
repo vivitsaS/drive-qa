@@ -6,7 +6,7 @@ Tests the DriveLMDataLoader functionality.
 
 import unittest
 
-from analysis.data_loader import DataLoader
+from parsers.data_loader import DataLoader
 
 
 class TestDataLoader(unittest.TestCase):
