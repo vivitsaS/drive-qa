@@ -22,15 +22,22 @@ docker build -f docker/Dockerfile -t drivelm-analysis .
 
 ### 2. Prepare Your Data
 
+- download v1_1_train_nus.json from drivelm
+- download nuscenes mini data set from the nuscenes website
+- keep them both in data/
+- there are only 6 overlapping scenes between the 2.
+- run parsers/concatenate.py to concatenate the 2 sources.
+
 Ensure your data is organized in the following structure:
 ```
 data/
-├── concatenated_data/
-│   └── concatenated_data.json
-├── raw/
-│   ├── nuscenes-mini/
-│   └── drivelm/
-└── processed/
+├── concatenated_data
+│   ├── concatenated_data.json
+│   ├── first_entry.json
+│   └── overlapping_scenes.csv
+├── v1_1_train_nus.json
+└── v1.0-mini
+    ├── ..
 ```
 
 ### 3. Run Analysis
@@ -48,7 +55,7 @@ Runs interactive Streamlit dashboard:
 ```bash
 docker-compose up drivelm-dashboard
 ```
-Access the dashboard at: http://localhost:8502
+Access the dashboard at: http://localhost:8501
 
 #### Analysis Only
 Runs analysis without interactive dashboard:
