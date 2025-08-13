@@ -158,6 +158,7 @@ class ContextRetriever:
         key_object_infos = keyframe_data.get("key_object_infos", {})
         image_paths = keyframe_data.get("image_paths", {})
         print(f"Found {len(key_object_infos)} objects in frame")
+        print(f"Found {len(image_paths)} image paths: {list(image_paths.keys())}")
         for c_tag in key_object_infos:
             print(f"  {c_tag}")
         
@@ -166,6 +167,7 @@ class ContextRetriever:
         fig, axes = plt.subplots(2, 3, figsize=(15, 10))
         axes = axes.flatten()
         
+        images_processed = 0
         for i, camera in enumerate(cameras):
             if camera in image_paths:
                 img_path = image_paths[camera]
@@ -178,16 +180,26 @@ class ContextRetriever:
                     axes[i].imshow(img)
                     axes[i].set_title(f"{camera}")
                     axes[i].axis('off')
+                    images_processed += 1
+                else:
+                    print(f"Failed to process image for {camera}")
+            else:
+                print(f"No image path found for {camera}")
+        
+        print(f"Successfully processed {images_processed} images")
         plt.tight_layout()
             
         # Convert to bytes for model consumption
         buf = io.BytesIO()
         plt.savefig(buf, format='png', dpi=300, bbox_inches='tight')
         buf.seek(0)
+        image_bytes = buf.getvalue()
         plt.close()  # Important: close to free memory
         
+        print(f"Generated image with {len(image_bytes)} bytes")
+        
         # Return as bytes (most flexible for model input)
-        return buf.getvalue()
+        return image_bytes
 
     # Alternative: Return as base64 string if your model expects that format
     def get_annotated_images_base64(self,buf):

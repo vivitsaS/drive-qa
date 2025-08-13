@@ -194,7 +194,8 @@ class RAGAgent:
             prompt = f"""
 You are an autonomous driving assistant. Answer the following question about a driving scene:
 
-Question: {question}
+Question1: {question}
+QUESTION 2: DESCRIBE THE IMAGE IN DETAIL.
 
 You have access to the following tools to gather information:
 1. Context data about the scene and keyframe
@@ -227,6 +228,12 @@ Provide a concise answer based on the available data. one line answer is enough.
             
             # Get annotated images
             images_result = self._get_annotated_images_tool()
+            # Save the image to a file (for debugging)
+            if images_result["success"]:
+                with open("annotated_image.png", "wb") as f:
+                    f.write(base64.b64decode(images_result["data"]["image_base64"]))
+                logger.info(f"Image saved to annotated_image.png")
+            # logger.info(f"Images result: {images_result}")
             
             # Prepare content for the model
             content_parts = [prompt]
@@ -245,12 +252,23 @@ Provide a concise answer based on the available data. one line answer is enough.
             
             # Add images if available
             if images_result["success"]:
-                content_parts.append({
+                # Create image part for Gemini
+                image_part = {
                     "mime_type": "image/png",
                     "data": images_result["data"]["image_base64"]
-                })
+                }
+                content_parts.append(image_part)
+                logger.info(f"Added image to content_parts with base64 length: {len(images_result['data']['image_base64'])}")
+                logger.info(f"Image part structure: {type(image_part)} with keys: {list(image_part.keys())}")
             
-            # logger.info(f"Content parts: {content_parts}")
+            # Debug: Log content parts structure
+            logger.info(f"Content parts count: {len(content_parts)}")
+            for i, part in enumerate(content_parts):
+                if isinstance(part, dict) and "mime_type" in part:
+                    logger.info(f"Part {i}: Image with mime_type={part['mime_type']}, data_length={len(part['data'])}")
+                else:
+                    logger.info(f"Part {i}: Text with length={len(str(part))}")
+            
             # Generate response
             response = self.model.generate_content(content_parts)
             
