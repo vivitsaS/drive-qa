@@ -192,26 +192,31 @@ class RAGAgent:
             
             # Create the prompt
             prompt = f"""
-You are an autonomous driving assistant. Answer the following question about a driving scene:
+You are an autonomous driving assistant analyzing a driving scene from the nuScenes dataset. Answer the following question about the driving scene:
 
 Question: {question}
 
-You have access to the following tools to gather information:
+IMPORTANT CONTEXT:
+- The "ego vehicle" is the autonomous vehicle you're analyzing from - it's equipped with 6 cameras (front, front-left, front-right, back, back-left, back-right) and other sensors
+- The ego vehicle is driving in its designated lane - objects detected on the sides of the road (shoulders, medians, adjacent lanes) are NOT in the ego vehicle's path
+- Lane markings: Solid white lines typically mark road edges/shoulders; dashed white lines separate lanes going the same direction
+- Traffic cones, barriers, or objects on the shoulder/median are NOT blocking the ego vehicle's path unless they extend into the driving lane
+- The ego vehicle follows standard driving rules and stays within its lane unless changing lanes most of the times, but anamolous behaviour is possible. This would be categorized as risky driving.
+
+You have access to:
 1. Context data about the scene and keyframe
 2. Vehicle movement data (speed, acceleration, position, etc.)
 3. Sensor data (object detections, LiDAR/radar points, etc.)
-4. Annotated images showing detected objects. Use these image to answer the question.
-
-Please use the appropriate tools to gather the information you need, then provide a comprehensive answer to the question.
+4. Annotated images showing detected objects from the ego vehicle's perspective
 
 Focus on:
-- What objects are present in the scene - here is key object info: {key_objects}
-- Their locations relative to the ego vehicle. how relevant these objects are to the question/ driving path. sometimes objects will be detected on teh side of the vehicle which is not relevant to the question. take into account the specific image and decide correctly
-- Their states (moving, stationary, etc.)
-- Any relevant spatial relationships
+ - Key objects in the scene: {key_objects}
+ - Their locations relative to the ego vehicle's driving path (not just detected anywhere)
+ - Whether objects are actually in the ego vehicle's lane vs. adjacent lanes/shoulders
+ - Object states (moving, stationary, etc.)
 - Traffic conditions and road layout
 
-Provide a concise answer based on the available data. one line answer is enough. but don't miss out any information!
+Provide a concise, accurate answer based on the available data. Consider lane positioning and driving context carefully.
 """
             
             # Get context data first
@@ -227,6 +232,12 @@ Provide a concise answer based on the available data. one line answer is enough.
             
             # Get annotated images
             images_result = self._get_annotated_images_tool()
+            # Save the image to a file (for debugging)
+            if images_result["success"]:
+                with open("annotated_image.png", "wb") as f:
+                    f.write(base64.b64decode(images_result["data"]["image_base64"]))
+                logger.info(f"Image saved to annotated_image.png")
+            # logger.info(f"Images result: {images_result}")
             
             # Prepare content for the model
             content_parts = [prompt]
@@ -245,12 +256,23 @@ Provide a concise answer based on the available data. one line answer is enough.
             
             # Add images if available
             if images_result["success"]:
-                content_parts.append({
+                # Create image part for Gemini
+                image_part = {
                     "mime_type": "image/png",
                     "data": images_result["data"]["image_base64"]
-                })
+                }
+                content_parts.append(image_part)
+                logger.info(f"Added image to content_parts with base64 length: {len(images_result['data']['image_base64'])}")
+                logger.info(f"Image part structure: {type(image_part)} with keys: {list(image_part.keys())}")
             
-            # logger.info(f"Content parts: {content_parts}")
+            # Debug: Log content parts structure
+            logger.info(f"Content parts count: {len(content_parts)}")
+            for i, part in enumerate(content_parts):
+                if isinstance(part, dict) and "mime_type" in part:
+                    logger.info(f"Part {i}: Image with mime_type={part['mime_type']}, data_length={len(part['data'])}")
+                else:
+                    logger.info(f"Part {i}: Text with length={len(str(part))}")
+            
             # Generate response
             response = self.model.generate_content(content_parts)
             
