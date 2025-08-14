@@ -9,14 +9,15 @@ import numpy as np
 from loguru import logger
 
 from parsers.data_loader import DataLoader
+from .base_analyzer import BaseAnalyzer
 
 
-class VehicleStateAnalyzer:
+class VehicleStateAnalyzer(BaseAnalyzer):
     """Vehicle state analyzer for driving behavior insights"""
 
-    def __init__(self, data_loader: DataLoader):
+    def __init__(self, data_loader: DataLoader = None):
         """Initialize the vehicle state analyzer"""
-        self.data_loader = data_loader
+        super().__init__(data_loader)
 
     def get_velocity_summary(self, scene_id: Union[int, str]) -> Dict[str, Any]:
         """

@@ -7,21 +7,22 @@ Analyzes which data fields are the best predictors for different QA types:
 - Identification of key indicators for each question category
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Union
 import numpy as np
 import pandas as pd
 from scipy import stats
 from loguru import logger
 
 from parsers.data_loader import DataLoader
+from .base_analyzer import BaseAnalyzer
 
 
-class PredictorAnalyzer:
+class PredictorAnalyzer(BaseAnalyzer):
     """Analyze which data fields best predict different QA types"""
     
-    def __init__(self, data_loader: DataLoader):
+    def __init__(self, data_loader: DataLoader = None):
         """Initialize the predictor analyzer"""
-        self.data_loader = data_loader
+        super().__init__(data_loader)
         self.qa_types = ['perception', 'planning', 'prediction', 'behavior']
         
     def analyze_qa_type_predictors(self) -> Dict[str, Any]:
@@ -376,3 +377,141 @@ class PredictorAnalyzer:
         # Sort by improvement
         threshold_indicators.sort(key=lambda x: x['improvement'], reverse=True)
         return threshold_indicators[:10]  # Top 10 
+
+    def analyze_scene(self, scene_id: Union[int, str]) -> Dict[str, Any]:
+        """
+        Analyze a single scene for predictor patterns.
+        
+        Args:
+            scene_id: Scene identifier
+            
+        Returns:
+            Analysis results for the scene
+        """
+        try:
+            scene_data = self.get_scene_data(scene_id)
+            
+            # Collect data points for this scene
+            scene_data_points = self._collect_scene_data_points(scene_id, scene_data)
+            
+            if not scene_data_points:
+                return {'scene_id': scene_id, 'error': 'No data points found'}
+            
+            # Analyze predictors for each QA type in this scene
+            scene_predictors = {}
+            for qa_type in self.qa_types:
+                predictors = self._analyze_predictors_for_qa_type(scene_data_points, qa_type)
+                scene_predictors[qa_type] = predictors
+            
+            return {
+                'scene_id': scene_id,
+                'predictors': scene_predictors,
+                'data_points_count': len(scene_data_points)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error analyzing scene {scene_id}: {e}")
+            return {'scene_id': scene_id, 'error': str(e)}
+    
+    def analyze_all_scenes(self) -> Dict[str, Any]:
+        """
+        Analyze all scenes for predictor patterns.
+        
+        Returns:
+            Analysis results for all scenes
+        """
+        logger.info("Analyzing predictors across all scenes...")
+        
+        all_scenes_results = {}
+        available_scenes = self.get_available_scenes()
+        
+        for scene_id in available_scenes:
+            scene_results = self.analyze_scene(scene_id)
+            all_scenes_results[f"scene_{scene_id}"] = scene_results
+        
+        # Add cross-scene analysis
+        cross_scene_analysis = self._analyze_cross_scene_patterns(all_scenes_results)
+        all_scenes_results['cross_scene_analysis'] = cross_scene_analysis
+        
+        return all_scenes_results
+    
+    def _collect_scene_data_points(self, scene_id: Union[int, str], scene_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Collect data points for a specific scene"""
+        data_points = []
+        
+        # Get QA data for all keyframes in this scene
+        qa_data = self.data_loader.extract_questions_from_keyframe(scene_id, 0)  # 0 for all keyframes
+        
+        # Get keyframes from scene data
+        scene_keyframes = scene_data.get('key_frames', {})
+        
+        # For each keyframe, create a data point
+        for keyframe_token, keyframe_data in scene_keyframes.items():
+            # Create synthetic features for this keyframe
+            features = self._extract_keyframe_features(keyframe_data, scene_data)
+            
+            # Count QA types for this keyframe
+            qa_counts = {qa_type: 0 for qa_type in self.qa_types}
+            
+            if keyframe_token in qa_data:
+                keyframe_qa = qa_data[keyframe_token]
+                for qa_type in self.qa_types:
+                    if qa_type in keyframe_qa and keyframe_qa[qa_type]:
+                        qa_counts[qa_type] += len(keyframe_qa[qa_type])
+            
+            # Create data point for each QA type
+            for qa_type in self.qa_types:
+                data_point = features.copy()
+                data_point['qa_type'] = qa_type
+                data_point['has_qa'] = qa_counts[qa_type] > 0
+                data_point['qa_count'] = qa_counts[qa_type]
+                data_points.append(data_point)
+        
+        return data_points
+    
+    def _analyze_cross_scene_patterns(self, all_scenes_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze patterns across all scenes"""
+        cross_scene_analysis = {
+            'consistent_predictors': {},
+            'scene_specific_predictors': {},
+            'qa_type_preferences': {}
+        }
+        
+        # Find consistent predictors across scenes
+        for qa_type in self.qa_types:
+            consistent_predictors = {}
+            scene_specific_predictors = {}
+            
+            # Collect top predictors from each scene
+            scene_predictors = []
+            for scene_key, scene_data in all_scenes_results.items():
+                if scene_key.startswith('scene_'):
+                    predictors = scene_data.get('predictors', {}).get(qa_type, {})
+                    if 'ranked_features' in predictors:
+                        scene_predictors.append(predictors['ranked_features'])
+            
+            if scene_predictors:
+                # Find features that appear in top 10 across multiple scenes
+                feature_appearances = {}
+                for scene_pred in scene_predictors:
+                    for pred in scene_pred[:10]:  # Top 10 from each scene
+                        feature = pred['feature']
+                        feature_appearances[feature] = feature_appearances.get(feature, 0) + 1
+                
+                # Consistent predictors (appear in >50% of scenes)
+                threshold = len(scene_predictors) * 0.5
+                consistent_predictors = {
+                    feature: count for feature, count in feature_appearances.items()
+                    if count >= threshold
+                }
+                
+                # Scene-specific predictors (appear in only 1 scene)
+                scene_specific_predictors = {
+                    feature: count for feature, count in feature_appearances.items()
+                    if count == 1
+                }
+            
+            cross_scene_analysis['consistent_predictors'][qa_type] = consistent_predictors
+            cross_scene_analysis['scene_specific_predictors'][qa_type] = scene_specific_predictors
+        
+        return cross_scene_analysis 

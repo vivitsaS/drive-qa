@@ -17,3 +17,4 @@ altair>=4.2.0
 wordcloud>=1.9.0
 kaleido>=0.2.1
 google-generativeai>=0.3.0
+PyYAML>=6.0

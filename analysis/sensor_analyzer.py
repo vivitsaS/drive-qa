@@ -7,19 +7,20 @@ Analyzes camera and sensor data patterns across scenes:
 - Multi-modal sensor fusion patterns
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Union
 from collections import defaultdict
 from loguru import logger
 
 from parsers.data_loader import DataLoader
+from .base_analyzer import BaseAnalyzer
 
 
-class SensorAnalyzer:
+class SensorAnalyzer(BaseAnalyzer):
     """Analyze sensor data patterns and coverage"""
     
-    def __init__(self, data_loader: DataLoader):
+    def __init__(self, data_loader: DataLoader = None):
         """Initialize the sensor analyzer"""
-        self.data_loader = data_loader
+        super().__init__(data_loader)
         self.cameras = ['CAM_FRONT', 'CAM_BACK', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT']
         self.radars = ['RADAR_FRONT', 'RADAR_FRONT_LEFT', 'RADAR_FRONT_RIGHT', 'RADAR_BACK_LEFT', 'RADAR_BACK_RIGHT']
         self.lidars = ['LIDAR_TOP']
@@ -321,3 +322,106 @@ class SensorAnalyzer:
         }
         
         return critical_sensors 
+
+    def analyze_scene(self, scene_id: Union[int, str]) -> Dict[str, Any]:
+        """
+        Analyze a single scene for sensor patterns.
+        
+        Args:
+            scene_id: Scene identifier
+            
+        Returns:
+            Analysis results for the scene
+        """
+        try:
+            scene_data = self.get_scene_data(scene_id)
+            
+            # Analyze camera activity
+            camera_activity = self._analyze_camera_activity(scene_data)
+            
+            # Analyze sensor availability
+            sensor_availability = self._analyze_sensor_availability(scene_data)
+            
+            # Detect missing data
+            missing_data = self._detect_missing_data(scene_data)
+            
+            # Analyze sensor fusion patterns
+            fusion_patterns = self._analyze_sensor_fusion(scene_data)
+            
+            # Analyze camera importance
+            camera_importance = self._analyze_camera_importance(scene_data)
+            
+            # Analyze sensor redundancy
+            sensor_redundancy = self._analyze_sensor_redundancy(scene_data)
+            
+            # Identify critical sensors
+            critical_sensors = self._identify_critical_sensors(scene_data)
+            
+            return {
+                'scene_id': scene_id,
+                'camera_activity': camera_activity,
+                'sensor_availability': sensor_availability,
+                'missing_data': missing_data,
+                'sensor_fusion_patterns': fusion_patterns,
+                'camera_importance': camera_importance,
+                'sensor_redundancy': sensor_redundancy,
+                'critical_sensors': critical_sensors
+            }
+            
+        except Exception as e:
+            logger.error(f"Error analyzing scene {scene_id}: {e}")
+            return {'scene_id': scene_id, 'error': str(e)}
+    
+    def analyze_all_scenes(self) -> Dict[str, Any]:
+        """
+        Analyze all scenes for sensor patterns.
+        
+        Returns:
+            Analysis results for all scenes
+        """
+        logger.info("Analyzing sensor patterns across all scenes...")
+        
+        all_scenes_results = {}
+        available_scenes = self.get_available_scenes()
+        
+        for scene_id in available_scenes:
+            scene_results = self.analyze_scene(scene_id)
+            all_scenes_results[f"scene_{scene_id}"] = scene_results
+        
+        # Add summary statistics
+        summary_stats = self._calculate_sensor_summary_stats(all_scenes_results)
+        all_scenes_results['summary'] = summary_stats
+        
+        return all_scenes_results
+    
+    def _calculate_sensor_summary_stats(self, all_scenes_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate summary statistics across all scenes"""
+        total_scenes = len([k for k in all_scenes_results.keys() if k.startswith('scene_')])
+        
+        # Aggregate camera activity across scenes
+        total_camera_activity = {}
+        total_sensor_availability = {}
+        
+        for scene_key, scene_data in all_scenes_results.items():
+            if scene_key.startswith('scene_'):
+                # Aggregate camera activity
+                camera_activity = scene_data.get('camera_activity', {})
+                for camera, activity in camera_activity.items():
+                    if camera not in total_camera_activity:
+                        total_camera_activity[camera] = 0
+                    total_camera_activity[camera] += activity.get('active_samples', 0)
+                
+                # Aggregate sensor availability
+                sensor_availability = scene_data.get('sensor_availability', {})
+                for sensor, availability in sensor_availability.items():
+                    if sensor not in total_sensor_availability:
+                        total_sensor_availability[sensor] = 0
+                    total_sensor_availability[sensor] += availability.get('available_samples', 0)
+        
+        return {
+            'total_scenes_analyzed': total_scenes,
+            'total_camera_activity': total_camera_activity,
+            'total_sensor_availability': total_sensor_availability,
+            'most_active_camera': max(total_camera_activity.items(), key=lambda x: x[1])[0] if total_camera_activity else None,
+            'most_available_sensor': max(total_sensor_availability.items(), key=lambda x: x[1])[0] if total_sensor_availability else None
+        } 

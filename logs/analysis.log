@@ -75,3 +75,82 @@
 2025-08-12 08:43:34.659 | INFO     | __main__:validate_data_path:97 - Using default data path: data/concatenated_data/concatenated_data.json
 2025-08-12 08:43:34.659 | INFO     | __main__:run_dashboard_only:59 - Starting dashboard on port 8501...
 2025-08-12 08:43:34.660 | INFO     | __main__:run_dashboard_only:73 - Running command: streamlit run /app/analysis/dashboard.py --server.port 8501 --server.address 0.0.0.0
+2025-08-14 11:28:24.393 | INFO     | __main__:setup_logging:26 - Starting DriveLM Analysis Pipeline
+2025-08-14 11:28:24.393 | INFO     | __main__:validate_data_path:97 - Using default data path: data/concatenated_data/concatenated_data.json
+2025-08-14 11:28:24.394 | INFO     | __main__:run_dashboard_only:59 - Starting dashboard on port 8501...
+2025-08-14 11:28:24.394 | INFO     | __main__:run_dashboard_only:73 - Running command: streamlit run /Users/vivitsashankar/Desktop/workspace/drive-qa/analysis/dashboard.py --server.port 8501 --server.address 0.0.0.0
+2025-08-14 11:29:00.406 | INFO     | __main__:setup_logging:26 - Starting DriveLM Analysis Pipeline
+2025-08-14 11:29:00.406 | INFO     | __main__:validate_data_path:97 - Using default data path: data/concatenated_data/concatenated_data.json
+2025-08-14 11:29:00.406 | INFO     | config.config_manager:_load_config:44 - Configuration loaded successfully
+2025-08-14 11:29:00.407 | INFO     | analysis.main_analysis:run_complete_analysis:191 - Starting complete analysis pipeline...
+2025-08-14 11:29:00.407 | INFO     | analysis.main_analysis:run_vehicle_analysis:54 - Running vehicle state analysis...
+2025-08-14 11:29:00.407 | INFO     | analysis.vehicle_state_analyzer:analyze_all_scenes:532 - Analyzing vehicle state data for all scenes...
+2025-08-14 11:29:00.407 | ERROR    | analysis.vehicle_state_analyzer:get_velocity_summary:57 - Error getting velocity summary: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.407 | ERROR    | analysis.vehicle_state_analyzer:classify_driving_style:121 - Error classifying driving style: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.407 | ERROR    | analysis.vehicle_state_analyzer:analyze_smoothness:180 - Error analyzing smoothness: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.407 | ERROR    | analysis.vehicle_state_analyzer:analyze_predictability:223 - Error analyzing predictability: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:calculate_risk_score:278 - Error calculating risk score: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:analyze_safety_margins:336 - Error analyzing safety margins: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:assess_collision_risk:386 - Error assessing collision risk: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:analyze_traffic_compliance:431 - Error analyzing traffic compliance: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:detect_system_performance_issues:492 - Error detecting system performance issues: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:get_velocity_summary:57 - Error getting velocity summary: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:classify_driving_style:121 - Error classifying driving style: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:analyze_smoothness:180 - Error analyzing smoothness: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:analyze_predictability:223 - Error analyzing predictability: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:calculate_risk_score:278 - Error calculating risk score: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:analyze_safety_margins:336 - Error analyzing safety margins: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:assess_collision_risk:386 - Error assessing collision risk: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:analyze_traffic_compliance:431 - Error analyzing traffic compliance: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:detect_system_performance_issues:492 - Error detecting system performance issues: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.408 | ERROR    | analysis.vehicle_state_analyzer:get_velocity_summary:57 - Error getting velocity summary: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:classify_driving_style:121 - Error classifying driving style: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:analyze_smoothness:180 - Error analyzing smoothness: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:analyze_predictability:223 - Error analyzing predictability: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:calculate_risk_score:278 - Error calculating risk score: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:analyze_safety_margins:336 - Error analyzing safety margins: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:assess_collision_risk:386 - Error assessing collision risk: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:analyze_traffic_compliance:431 - Error analyzing traffic compliance: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:detect_system_performance_issues:492 - Error detecting system performance issues: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:get_velocity_summary:57 - Error getting velocity summary: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:classify_driving_style:121 - Error classifying driving style: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:analyze_smoothness:180 - Error analyzing smoothness: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:analyze_predictability:223 - Error analyzing predictability: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:calculate_risk_score:278 - Error calculating risk score: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:analyze_safety_margins:336 - Error analyzing safety margins: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:assess_collision_risk:386 - Error assessing collision risk: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:analyze_traffic_compliance:431 - Error analyzing traffic compliance: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:detect_system_performance_issues:492 - Error detecting system performance issues: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:get_velocity_summary:57 - Error getting velocity summary: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:classify_driving_style:121 - Error classifying driving style: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:analyze_smoothness:180 - Error analyzing smoothness: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:analyze_predictability:223 - Error analyzing predictability: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.409 | ERROR    | analysis.vehicle_state_analyzer:calculate_risk_score:278 - Error calculating risk score: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:analyze_safety_margins:336 - Error analyzing safety margins: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:assess_collision_risk:386 - Error assessing collision risk: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:analyze_traffic_compliance:431 - Error analyzing traffic compliance: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:detect_system_performance_issues:492 - Error detecting system performance issues: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:get_velocity_summary:57 - Error getting velocity summary: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:classify_driving_style:121 - Error classifying driving style: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:analyze_smoothness:180 - Error analyzing smoothness: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:analyze_predictability:223 - Error analyzing predictability: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:calculate_risk_score:278 - Error calculating risk score: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:analyze_safety_margins:336 - Error analyzing safety margins: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:assess_collision_risk:386 - Error assessing collision risk: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:analyze_traffic_compliance:431 - Error analyzing traffic compliance: 'DataService' object has no attribute 'extract_ego_movement_data'
+2025-08-14 11:29:00.410 | ERROR    | analysis.vehicle_state_analyzer:detect_system_performance_issues:492 - Error detecting system performance issues: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | INFO     | analysis.main_analysis:run_question_analysis:76 - Running question distribution analysis...
+2025-08-14 11:29:00.410 | WARNING  | analysis.base_analyzer:get_all_scenes_data:90 - Failed to load scene 1: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | WARNING  | analysis.base_analyzer:get_all_scenes_data:90 - Failed to load scene 2: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | WARNING  | analysis.base_analyzer:get_all_scenes_data:90 - Failed to load scene 3: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | WARNING  | analysis.base_analyzer:get_all_scenes_data:90 - Failed to load scene 4: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | WARNING  | analysis.base_analyzer:get_all_scenes_data:90 - Failed to load scene 5: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | WARNING  | analysis.base_analyzer:get_all_scenes_data:90 - Failed to load scene 6: 'DataService' object has no attribute 'load_scene_data'
+2025-08-14 11:29:00.410 | INFO     | analysis.main_analysis:run_sensor_analysis:98 - Running sensor data analysis...
+2025-08-14 11:29:00.410 | INFO     | analysis.sensor_analyzer:analyze_all_scenes:382 - Analyzing sensor patterns across all scenes...
+2025-08-14 11:29:00.410 | INFO     | analysis.main_analysis:run_predictor_analysis:120 - Running predictor analysis...
+2025-08-14 11:29:00.410 | INFO     | analysis.predictor_analyzer:analyze_all_scenes:423 - Analyzing predictors across all scenes...
+2025-08-14 11:29:00.410 | INFO     | analysis.main_analysis:run_pattern_analysis:142 - Running pattern analysis...
+2025-08-14 11:29:00.410 | INFO     | analysis.main_analysis:generate_dashboard:166 - Generating dashboard...
+2025-08-14 11:29:00.411 | INFO     | analysis.main_analysis:generate_markdown_report:180 - Generating markdown report...
+2025-08-14 11:29:00.411 | INFO     | __main__:main:162 - Analysis completed successfully
