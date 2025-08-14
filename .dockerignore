@@ -47,10 +47,11 @@ Thumbs.db
 # Data (will be mounted as volumes)
 data/raw/*
 data/processed/*
+data/v1.0-mini/
+data/v1_1_train_nus.json
 !data/concatenated_data/
 
 # Outputs (will be mounted as volumes)
-reports/*
 logs/*
 
 # Temporary files

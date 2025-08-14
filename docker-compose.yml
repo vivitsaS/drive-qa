@@ -11,8 +11,6 @@ services:
     volumes:
       # Mount data directory for persistent storage
       - ./data:/app/data
-      # Mount reports directory for outputs
-      - ./reports:/app/reports
       # Mount logs directory
       - ./logs:/app/logs
     environment:
@@ -26,10 +24,9 @@ services:
       dockerfile: docker/Dockerfile
     container_name: drivelm-dashboard
     ports:
-      - "8502:8501"  # Alternative port for dashboard-only mode
+      - "8501:8501"  # Alternative port for dashboard-only mode
     volumes:
       - ./data:/app/data
-      - ./reports:/app/reports
       - ./logs:/app/logs
     environment:
       - PYTHONPATH=/app
@@ -43,7 +40,6 @@ services:
     container_name: drivelm-analysis-only
     volumes:
       - ./data:/app/data
-      - ./reports:/app/reports
       - ./logs:/app/logs
     environment:
       - PYTHONPATH=/app

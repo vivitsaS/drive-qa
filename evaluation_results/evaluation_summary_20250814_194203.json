@@ -1,0 +1,35 @@
+{
+  "total_tasks": 7,
+  "total_successful": 7,
+  "total_failed": 0,
+  "success_rate": 1.0,
+  "exact_match_rate": 0.0,
+  "avg_semantic_similarity": 0.05075760476457341,
+  "avg_evaluation_time": 9.380935975483485,
+  "qa_type_stats": {
+    "perception": {
+      "count": 2,
+      "exact_match_rate": 0.0,
+      "avg_semantic_similarity": 0.08287139689578714
+    },
+    "planning": {
+      "count": 2,
+      "exact_match_rate": 0.0,
+      "avg_semantic_similarity": 0.017857142857142856
+    },
+    "prediction": {
+      "count": 2,
+      "exact_match_rate": 0.0,
+      "avg_semantic_similarity": 0.019230769230769232
+    },
+    "behavior": {
+      "count": 1,
+      "exact_match_rate": 0.0,
+      "avg_semantic_similarity": 0.11538461538461539
+    }
+  },
+  "error_summary": {
+    "total_errors": 0,
+    "common_errors": {}
+  }
+}
