@@ -106,3 +106,56 @@
 2025-08-14 15:55:01.760 | INFO     | rag.rag_agent:answer_question:274 - Part 3: Text with length=1233
 2025-08-14 15:55:01.760 | INFO     | rag.rag_agent:answer_question:272 - Part 4: Image with mime_type=image/png, data_length=16733312
 2025-08-14 15:55:08.508 | SUCCESS  | __main__:test_rag_agent:64 - RAG Agent test successful!
+2025-08-14 19:27:54.876 | INFO     | __main__:setup_logging:25 - Starting RAG Agent Test
+2025-08-14 19:27:54.877 | ERROR    | __main__:validate_api_key:32 - Please set GEMINI_API_KEY environment variable
+2025-08-14 19:27:54.877 | INFO     | __main__:validate_api_key:33 - You can get an API key from: https://makersuite.google.com/app/apikey
+2025-08-14 19:28:00.599 | INFO     | __main__:setup_logging:25 - Starting RAG Agent Test
+2025-08-14 19:28:00.599 | INFO     | __main__:test_rag_agent:53 - Testing RAG Agent with:
+2025-08-14 19:28:00.599 | INFO     | __main__:test_rag_agent:54 -   Scene ID: 1
+2025-08-14 19:28:00.599 | INFO     | __main__:test_rag_agent:55 -   Keyframe ID: 1
+2025-08-14 19:28:00.599 | INFO     | __main__:test_rag_agent:56 -   QA Type: prediction
+2025-08-14 19:28:00.600 | INFO     | __main__:test_rag_agent:57 -   QA Serial: 1
+2025-08-14 19:28:00.723 | INFO     | parsers.data_loader:load_all_data:131 - Loaded data from data/concatenated_data/concatenated_data.json
+2025-08-14 19:28:00.724 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:135 - Context samples count: 24
+2025-08-14 19:28:00.724 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:136 - Context keyframes count: 4
+2025-08-14 19:28:00.724 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:137 - Target keyframe token: 4711bcd34644420da8bc77163431888e
+2025-08-14 19:28:00.845 | INFO     | parsers.data_loader:load_all_data:131 - Loaded data from data/concatenated_data/concatenated_data.json
+2025-08-14 19:28:00.845 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:135 - Context samples count: 24
+2025-08-14 19:28:00.845 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:136 - Context keyframes count: 4
+2025-08-14 19:28:00.845 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:137 - Target keyframe token: 4711bcd34644420da8bc77163431888e
+2025-08-14 19:28:00.854 | INFO     | rag.retrieval.context_retriever:get_sensor_data_upto_sample_token:597 - Retrieved sensor data for sample token: 4711bcd34644420da8bc77163431888e with 144 detected objects
+2025-08-14 19:28:02.967 | INFO     | rag.rag_agent:answer_question:239 - Image saved to annotated_image.png
+2025-08-14 19:28:02.967 | INFO     | rag.rag_agent:answer_question:265 - Added image to content_parts with base64 length: 10430528
+2025-08-14 19:28:02.967 | INFO     | rag.rag_agent:answer_question:266 - Image part structure: <class 'dict'> with keys: ['mime_type', 'data']
+2025-08-14 19:28:02.967 | INFO     | rag.rag_agent:answer_question:269 - Content parts count: 5
+2025-08-14 19:28:02.967 | INFO     | rag.rag_agent:answer_question:274 - Part 0: Text with length=2415
+2025-08-14 19:28:02.967 | INFO     | rag.rag_agent:answer_question:274 - Part 1: Text with length=150
+2025-08-14 19:28:02.967 | INFO     | rag.rag_agent:answer_question:274 - Part 2: Text with length=422
+2025-08-14 19:28:02.967 | INFO     | rag.rag_agent:answer_question:274 - Part 3: Text with length=1620
+2025-08-14 19:28:02.967 | INFO     | rag.rag_agent:answer_question:272 - Part 4: Image with mime_type=image/png, data_length=10430528
+2025-08-14 19:28:46.003 | SUCCESS  | __main__:test_rag_agent:64 - RAG Agent test successful!
+2025-08-14 19:30:00.230 | INFO     | __main__:setup_logging:25 - Starting RAG Agent Test
+2025-08-14 19:30:00.231 | INFO     | __main__:test_rag_agent:53 - Testing RAG Agent with:
+2025-08-14 19:30:00.231 | INFO     | __main__:test_rag_agent:54 -   Scene ID: 1
+2025-08-14 19:30:00.231 | INFO     | __main__:test_rag_agent:55 -   Keyframe ID: 1
+2025-08-14 19:30:00.231 | INFO     | __main__:test_rag_agent:56 -   QA Type: prediction
+2025-08-14 19:30:00.231 | INFO     | __main__:test_rag_agent:57 -   QA Serial: 1
+2025-08-14 19:30:00.357 | INFO     | parsers.data_loader:load_all_data:131 - Loaded data from data/concatenated_data/concatenated_data.json
+2025-08-14 19:30:00.358 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:135 - Context samples count: 24
+2025-08-14 19:30:00.358 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:136 - Context keyframes count: 4
+2025-08-14 19:30:00.358 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:137 - Target keyframe token: 4711bcd34644420da8bc77163431888e
+2025-08-14 19:30:00.481 | INFO     | parsers.data_loader:load_all_data:131 - Loaded data from data/concatenated_data/concatenated_data.json
+2025-08-14 19:30:00.481 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:135 - Context samples count: 24
+2025-08-14 19:30:00.481 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:136 - Context keyframes count: 4
+2025-08-14 19:30:00.481 | INFO     | rag.retrieval.context_retriever:get_context_upto_keyframe:137 - Target keyframe token: 4711bcd34644420da8bc77163431888e
+2025-08-14 19:30:00.491 | INFO     | rag.retrieval.context_retriever:get_sensor_data_upto_sample_token:597 - Retrieved sensor data for sample token: 4711bcd34644420da8bc77163431888e with 144 detected objects
+2025-08-14 19:30:02.569 | INFO     | rag.rag_agent:answer_question:239 - Image saved to annotated_image.png
+2025-08-14 19:30:02.570 | INFO     | rag.rag_agent:answer_question:265 - Added image to content_parts with base64 length: 10430528
+2025-08-14 19:30:02.570 | INFO     | rag.rag_agent:answer_question:266 - Image part structure: <class 'dict'> with keys: ['mime_type', 'data']
+2025-08-14 19:30:02.570 | INFO     | rag.rag_agent:answer_question:269 - Content parts count: 5
+2025-08-14 19:30:02.570 | INFO     | rag.rag_agent:answer_question:274 - Part 0: Text with length=2415
+2025-08-14 19:30:02.570 | INFO     | rag.rag_agent:answer_question:274 - Part 1: Text with length=150
+2025-08-14 19:30:02.570 | INFO     | rag.rag_agent:answer_question:274 - Part 2: Text with length=422
+2025-08-14 19:30:02.570 | INFO     | rag.rag_agent:answer_question:274 - Part 3: Text with length=1620
+2025-08-14 19:30:02.570 | INFO     | rag.rag_agent:answer_question:272 - Part 4: Image with mime_type=image/png, data_length=10430528
+2025-08-14 19:30:20.617 | SUCCESS  | __main__:test_rag_agent:64 - RAG Agent test successful!
