@@ -24,7 +24,7 @@ def test_rag_agent():
     # Test parameters - using the first entry from the data
     scene_id = 1
     keyframe_id = 1
-    qa_type = "planning"
+    qa_type = "prediction"
     qa_serial = 1
     
     logger.info(f"Testing RAG Agent with:")
