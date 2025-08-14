@@ -1,5 +1,6 @@
 import streamlit as st
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
 import sys
 import os
@@ -27,7 +28,7 @@ def main():
     totals = qa_analyzer.analyze_scenes()  # This gets data for all scenes
     
     # Extract totals
-    # total = totals["total"]  # Unused variable
+    total = totals["total"]
     
     # Create pie chart data
     qa_types = ['perception', 'planning', 'prediction', 'behavior']
@@ -58,10 +59,15 @@ def main():
         object_data = qa_content['objects']
         
         # Create bar chart for object mentions
+        objects_df = pd.DataFrame({
+            'Objects': list(object_data.keys()),
+            'Mention Count': list(object_data.values())
+        })
         fig_objects = px.bar(
-            x=list(object_data.keys()),
-            y=list(object_data.values()),
-            labels={'x': 'Objects', 'y': 'Mention Count'}
+            objects_df,
+            x='Objects',
+            y='Mention Count',
+            labels={'Objects': 'Objects', 'Mention Count': 'Mention Count'}
         )
         fig_objects.update_xaxes(tickangle=45)
         st.plotly_chart(fig_objects, use_container_width=True)

@@ -4,6 +4,29 @@ Main Analysis Runner Script
 
 This script serves as the entry point for running the complete DriveLM data analysis pipeline.
 It can be run in different modes: full analysis, dashboard only, or specific analysis components.
+
+USAGE EXAMPLES:
+    # Run full analysis locally (generates static reports)
+    python scripts/run_analysis.py --mode full
+    
+    # Run interactive dashboard locally on port 8501
+    python scripts/run_analysis.py --mode local --port 8501
+    
+    # Run dashboard only locally
+    python scripts/run_analysis.py --mode dashboard --port 8501
+    
+    # Run full analysis in Docker
+    python scripts/run_analysis.py --mode docker --docker-service drivelm-analysis
+    
+    # Run dashboard only in Docker
+    python scripts/run_analysis.py --mode docker --docker-service drivelm-dashboard --port 8502
+    
+    # Run analysis without dashboard in Docker
+    python scripts/run_analysis.py --mode docker --docker-service drivelm-analysis-only
+
+DASHBOARD ACCESS:
+    - Local: http://localhost:8501
+    - Docker: http://localhost:8501 (or specified port)
 """
 
 import argparse
@@ -56,7 +79,8 @@ def run_dashboard_only(data_path: str, port: int = 8501):
         data_path: Path to the data directory or concatenated data file
         port: Port to run the dashboard on
     """
-    logger.info(f"Starting dashboard on port {port}...")
+    logger.info(f"Starting interactive Streamlit dashboard on port {port}...")
+    logger.info(f"Access the dashboard at: http://localhost:{port}")
     
     # Set environment variable for data path
     os.environ['DATA_PATH'] = data_path
@@ -67,7 +91,9 @@ def run_dashboard_only(data_path: str, port: int = 8501):
         "streamlit", "run", 
         str(project_root / "analysis" / "dashboard.py"),
         "--server.port", str(port),
-        "--server.address", "0.0.0.0"
+        "--server.address", "0.0.0.0",
+        "--server.headless", "false",
+        "--browser.gatherUsageStats", "false"
     ]
     
     logger.info(f"Running command: {' '.join(cmd)}")
@@ -107,14 +133,55 @@ def validate_data_path(data_path: str) -> str:
     return data_path
 
 
+def run_docker_analysis(service_name: str, port: int = 8501):
+    """
+    Run analysis using Docker Compose
+    
+    Args:
+        service_name: Name of the Docker service to run
+        port: Port for the dashboard (if applicable)
+    """
+    logger.info(f"Starting Docker service: {service_name}")
+    logger.info(f"Dashboard will be available at: http://localhost:{port}")
+    
+    import subprocess
+    
+    # Check if docker-compose.yml exists
+    compose_file = project_root / "docker-compose.yml"
+    if not compose_file.exists():
+        logger.error("docker-compose.yml not found in project root")
+        sys.exit(1)
+    
+    # Build and run the service
+    try:
+        # Build the service
+        logger.info("Building Docker service...")
+        subprocess.run([
+            "docker-compose", "build", service_name
+        ], check=True, cwd=project_root)
+        
+        # Run the service
+        logger.info(f"Starting {service_name}...")
+        subprocess.run([
+            "docker-compose", "up", service_name
+        ], check=True, cwd=project_root)
+        
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Docker command failed: {e}")
+        sys.exit(1)
+    except FileNotFoundError:
+        logger.error("Docker or docker-compose not found. Please install Docker and Docker Compose.")
+        sys.exit(1)
+
+
 def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(description="DriveLM Data Analysis Pipeline")
     parser.add_argument(
         "--mode", 
-        choices=["full", "dashboard", "analysis"],
+        choices=["full", "dashboard", "analysis", "local", "docker"],
         default="full",
-        help="Analysis mode to run"
+        help="Analysis mode to run (local/docker for execution environment)"
     )
     parser.add_argument(
         "--data-path",
@@ -132,6 +199,13 @@ def main():
         type=str,
         default="reports",
         help="Output directory for reports and visualizations"
+    )
+    parser.add_argument(
+        "--docker-service",
+        type=str,
+        choices=["drivelm-analysis", "drivelm-dashboard", "drivelm-analysis-only"],
+        default="drivelm-analysis",
+        help="Docker service to use (docker mode only)"
     )
     
     args = parser.parse_args()
@@ -160,6 +234,15 @@ def main():
             analyzer = MainAnalysis(data_path)
             results = analyzer.run_complete_analysis()
             logger.info("Analysis completed successfully")
+            
+        elif args.mode == "local":
+            # Run locally with interactive dashboard
+            logger.info("Running analysis locally with interactive dashboard...")
+            run_dashboard_only(data_path, args.port)
+            
+        elif args.mode == "docker":
+            # Run using Docker
+            run_docker_analysis(args.docker_service, args.port)
             
     except Exception as e:
         logger.error(f"Analysis failed: {str(e)}")
