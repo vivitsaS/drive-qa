@@ -50,7 +50,7 @@ def test_rag_agent(scene_id: int, keyframe_id: int, qa_type: str, qa_serial: int
     # Initialize the agent
     agent = RAGAgent(api_key)
     
-    logger.info(f"Testing RAG Agent with:")
+    logger.info("Testing RAG Agent with:")
     logger.info(f"  Scene ID: {scene_id}")
     logger.info(f"  Keyframe ID: {keyframe_id}")
     logger.info(f"  QA Type: {qa_type}")

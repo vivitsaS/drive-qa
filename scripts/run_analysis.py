@@ -40,7 +40,6 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from analysis.main_analysis import MainAnalysis
-from parsers.data_loader import DataLoader
 
 
 def setup_logging():
@@ -64,7 +63,7 @@ def run_full_analysis(data_path: str):
     # Run complete analysis
     results = analyzer.run_complete_analysis()
     
-    logger.info(f"Analysis complete!")
+    logger.info("Analysis complete!")
     logger.info(f"Dashboard: {results.get('dashboard_path', 'Not generated')}")
     logger.info(f"Report: {results.get('report_path', 'Not generated')}")
     

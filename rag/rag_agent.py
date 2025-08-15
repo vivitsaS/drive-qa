@@ -236,7 +236,7 @@ Provide a concise, accurate answer based on the available data. Consider lane po
             if images_result["success"]:
                 with open("annotated_image.png", "wb") as f:
                     f.write(base64.b64decode(images_result["data"]["image_base64"]))
-                logger.info(f"Image saved to annotated_image.png")
+                logger.info("Image saved to annotated_image.png")
             # logger.info(f"Images result: {images_result}")
             
             # Prepare content for the model
