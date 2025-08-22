@@ -17,6 +17,7 @@ from typing import Dict, List, Any
 from datetime import datetime
 import time
 from loguru import logger
+import google.generativeai as genai
 
 # Add the project root to the Python path
 project_root = Path(__file__).parent.parent
@@ -120,6 +121,13 @@ def run_single_evaluation(agent: RAGAgent, task: Dict[str, Any]) -> Dict[str, An
         evaluation_time = time.time() - start_time
         
         if result["success"]:
+            # Add LLM judge evaluation
+            llm_evaluation = calculate_llm_judge_score(
+                result['model_answer'], 
+                result['ground_truth_answer'], 
+                result['question']
+            )
+            
             return {
                 'task': task,
                 'success': True,
@@ -128,6 +136,7 @@ def run_single_evaluation(agent: RAGAgent, task: Dict[str, Any]) -> Dict[str, An
                 'ground_truth_answer': result['ground_truth_answer'],
                 'metadata': result['metadata'],
                 'evaluation_time': evaluation_time,
+                'llm_evaluation': llm_evaluation,
                 'error': None
             }
         else:
@@ -139,6 +148,7 @@ def run_single_evaluation(agent: RAGAgent, task: Dict[str, Any]) -> Dict[str, An
                 'ground_truth_answer': None,
                 'metadata': result.get('metadata', {}),
                 'evaluation_time': evaluation_time,
+                'llm_evaluation': {'success': False, 'error': 'RAG agent failed'},
                 'error': result.get('error', 'Unknown error')
             }
             
@@ -153,6 +163,7 @@ def run_single_evaluation(agent: RAGAgent, task: Dict[str, Any]) -> Dict[str, An
             'ground_truth_answer': None,
             'metadata': {},
             'evaluation_time': evaluation_time,
+            'llm_evaluation': {'success': False, 'error': str(e)},
             'error': str(e)
         }
 
@@ -176,13 +187,101 @@ def calculate_semantic_similarity(model_answer: str, ground_truth: str) -> float
     return len(intersection) / len(union) if union else 0.0
 
 
+def calculate_llm_judge_score(model_answer: str, ground_truth: str, question: str) -> Dict[str, Any]:
+    """
+    Use LLM to evaluate semantic correctness of the model answer.
+    
+    Args:
+        model_answer: The RAG agent's answer
+        ground_truth: The ground truth answer
+        question: The original question
+        
+    Returns:
+        Dictionary with evaluation scores and reasoning
+    """
+    try:
+        # Create evaluation prompt for Gemini
+        evaluation_prompt = f"""
+You are an expert evaluator for autonomous driving question-answering systems. Evaluate the semantic correctness of the model's answer compared to the ground truth.
+
+Question: {question}
+Ground Truth Answer: {ground_truth}
+Model Answer: {model_answer}
+
+Evaluate the model's answer on these criteria:
+1. **Semantic Correctness** (0-10): Does the model's answer convey the same core meaning as the ground truth?
+2. **Completeness** (0-10): Does the model provide sufficient detail and context?
+3. **Accuracy** (0-10): Are the facts stated in the model's answer accurate?
+4. **Usefulness** (0-10): Is the answer helpful for autonomous driving decision-making?
+
+Consider that:
+- Detailed explanations are better than simple answers
+- Contextual reasoning is valuable
+- The model may provide more comprehensive information than ground truth
+- Focus on whether the core meaning and intent are correct
+
+Provide your evaluation as JSON:
+{{
+    "semantic_correctness": <score>,
+    "completeness": <score>,
+    "accuracy": <score>,
+    "usefulness": <score>,
+    "overall_score": <average of all scores>,
+    "reasoning": "<explanation of your evaluation>"
+}}
+"""
+        
+        # Configure Gemini API
+        api_key = os.getenv('GEMINI_API_KEY') or os.getenv('GEMINI_KEY')
+        if not api_key:
+            return {
+                "success": False,
+                "error": "No API key found",
+                "raw_response": ""
+            }
+        
+        genai.configure(api_key=api_key)
+        
+        # Use the same model for evaluation
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(evaluation_prompt)
+        
+        # Parse the JSON response
+        try:
+            import json
+            evaluation = json.loads(response.text)
+            return {
+                "success": True,
+                "scores": evaluation,
+                "raw_response": response.text
+            }
+        except json.JSONDecodeError:
+            # Fallback: extract scores from text
+            logger.warning(f"Failed to parse JSON response: {response.text}")
+            return {
+                "success": False,
+                "error": "Failed to parse JSON response",
+                "raw_response": response.text
+            }
+            
+    except Exception as e:
+        logger.error(f"Error in LLM judge evaluation: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "raw_response": ""
+        }
+
+
 def save_results_to_csv(results: List[Dict[str, Any]], output_file: str):
     """Save evaluation results to CSV file"""
     with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
         fieldnames = [
             'scene_id', 'keyframe_id', 'qa_type', 'qa_serial',
             'success', 'question', 'model_answer', 'ground_truth_answer',
-            'exact_match', 'semantic_similarity', 'evaluation_time', 'error'
+            'exact_match', 'semantic_similarity', 'llm_semantic_correctness', 
+            'llm_completeness', 'llm_accuracy', 'llm_usefulness', 'llm_overall_score',
+            'evaluation_time', 'error'
         ]
         
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -206,9 +305,30 @@ def save_results_to_csv(results: List[Dict[str, Any]], output_file: str):
             if result['success'] and result['model_answer'] and result['ground_truth_answer']:
                 row['exact_match'] = calculate_exact_match(result['model_answer'], result['ground_truth_answer'])
                 row['semantic_similarity'] = calculate_semantic_similarity(result['model_answer'], result['ground_truth_answer'])
+                
+                # Add LLM judge scores
+                llm_eval = result.get('llm_evaluation', {})
+                if llm_eval.get('success'):
+                    scores = llm_eval['scores']
+                    row['llm_semantic_correctness'] = scores.get('semantic_correctness', 0)
+                    row['llm_completeness'] = scores.get('completeness', 0)
+                    row['llm_accuracy'] = scores.get('accuracy', 0)
+                    row['llm_usefulness'] = scores.get('usefulness', 0)
+                    row['llm_overall_score'] = scores.get('overall_score', 0)
+                else:
+                    row['llm_semantic_correctness'] = 0
+                    row['llm_completeness'] = 0
+                    row['llm_accuracy'] = 0
+                    row['llm_usefulness'] = 0
+                    row['llm_overall_score'] = 0
             else:
                 row['exact_match'] = False
                 row['semantic_similarity'] = 0.0
+                row['llm_semantic_correctness'] = 0
+                row['llm_completeness'] = 0
+                row['llm_accuracy'] = 0
+                row['llm_usefulness'] = 0
+                row['llm_overall_score'] = 0
             
             writer.writerow(row)
 
@@ -227,6 +347,13 @@ def generate_summary_report(results: List[Dict[str, Any]]) -> Dict[str, Any]:
     semantic_similarities = []
     evaluation_times = []
     
+    # LLM judge metrics
+    llm_semantic_correctness = []
+    llm_completeness = []
+    llm_accuracy = []
+    llm_usefulness = []
+    llm_overall_scores = []
+    
     for result in successful_results:
         if result['model_answer'] and result['ground_truth_answer']:
             if calculate_exact_match(result['model_answer'], result['ground_truth_answer']):
@@ -235,10 +362,27 @@ def generate_summary_report(results: List[Dict[str, Any]]) -> Dict[str, Any]:
                 calculate_semantic_similarity(result['model_answer'], result['ground_truth_answer'])
             )
         evaluation_times.append(result['evaluation_time'])
+        
+        # Collect LLM judge scores
+        llm_eval = result.get('llm_evaluation', {})
+        if llm_eval.get('success') and 'scores' in llm_eval:
+            scores = llm_eval['scores']
+            llm_semantic_correctness.append(scores.get('semantic_correctness', 0))
+            llm_completeness.append(scores.get('completeness', 0))
+            llm_accuracy.append(scores.get('accuracy', 0))
+            llm_usefulness.append(scores.get('usefulness', 0))
+            llm_overall_scores.append(scores.get('overall_score', 0))
     
     # Calculate averages
     avg_semantic_similarity = sum(semantic_similarities) / len(semantic_similarities) if semantic_similarities else 0
     avg_evaluation_time = sum(evaluation_times) / len(evaluation_times) if evaluation_times else 0
+    
+    # LLM judge averages
+    avg_llm_semantic_correctness = sum(llm_semantic_correctness) / len(llm_semantic_correctness) if llm_semantic_correctness else 0
+    avg_llm_completeness = sum(llm_completeness) / len(llm_completeness) if llm_completeness else 0
+    avg_llm_accuracy = sum(llm_accuracy) / len(llm_accuracy) if llm_accuracy else 0
+    avg_llm_usefulness = sum(llm_usefulness) / len(llm_usefulness) if llm_usefulness else 0
+    avg_llm_overall = sum(llm_overall_scores) / len(llm_overall_scores) if llm_overall_scores else 0
     
     # Per QA type analysis
     qa_type_stats = {}
@@ -251,10 +395,15 @@ def generate_summary_report(results: List[Dict[str, Any]]) -> Dict[str, Any]:
             type_similarities = [calculate_semantic_similarity(r['model_answer'], r['ground_truth_answer']) 
                                for r in type_results if r['model_answer'] and r['ground_truth_answer']]
             
+            # LLM judge scores for this QA type
+            type_llm_scores = [r.get('llm_evaluation', {}).get('scores', {}).get('overall_score', 0) 
+                              for r in type_results if r.get('llm_evaluation', {}).get('success')]
+            
             qa_type_stats[qa_type] = {
                 'count': len(type_results),
                 'exact_match_rate': type_exact_matches / len(type_results) if type_results else 0,
-                'avg_semantic_similarity': sum(type_similarities) / len(type_similarities) if type_similarities else 0
+                'avg_semantic_similarity': sum(type_similarities) / len(type_similarities) if type_similarities else 0,
+                'avg_llm_score': sum(type_llm_scores) / len(type_llm_scores) if type_llm_scores else 0
             }
     
     return {
@@ -265,6 +414,13 @@ def generate_summary_report(results: List[Dict[str, Any]]) -> Dict[str, Any]:
         'exact_match_rate': exact_matches / total_successful if total_successful > 0 else 0,
         'avg_semantic_similarity': avg_semantic_similarity,
         'avg_evaluation_time': avg_evaluation_time,
+        'llm_judge_metrics': {
+            'avg_semantic_correctness': avg_llm_semantic_correctness,
+            'avg_completeness': avg_llm_completeness,
+            'avg_accuracy': avg_llm_accuracy,
+            'avg_usefulness': avg_llm_usefulness,
+            'avg_overall_score': avg_llm_overall
+        },
         'qa_type_stats': qa_type_stats,
         'error_summary': {
             'total_errors': total_failed,
@@ -352,11 +508,22 @@ def main():
     print(f"Average semantic similarity: {summary['avg_semantic_similarity']:.3f}")
     print(f"Average evaluation time: {summary['avg_evaluation_time']:.2f}s")
     
+    # LLM Judge Metrics
+    llm_metrics = summary.get('llm_judge_metrics', {})
+    if llm_metrics:
+        print("\nLLM Judge Metrics (0-10 scale):")
+        print(f"  Semantic Correctness: {llm_metrics['avg_semantic_correctness']:.2f}")
+        print(f"  Completeness: {llm_metrics['avg_completeness']:.2f}")
+        print(f"  Accuracy: {llm_metrics['avg_accuracy']:.2f}")
+        print(f"  Usefulness: {llm_metrics['avg_usefulness']:.2f}")
+        print(f"  Overall Score: {llm_metrics['avg_overall_score']:.2f}")
+    
     print("\nPer QA Type Performance:")
     for qa_type, stats in summary['qa_type_stats'].items():
         print(f"  {qa_type}: {stats['count']} tasks, "
               f"exact match: {stats['exact_match_rate']:.2%}, "
-              f"semantic similarity: {stats['avg_semantic_similarity']:.3f}")
+              f"semantic similarity: {stats['avg_semantic_similarity']:.3f}, "
+              f"LLM score: {stats['avg_llm_score']:.2f}")
     
     print(f"\nResults saved to: {output_dir}")
 

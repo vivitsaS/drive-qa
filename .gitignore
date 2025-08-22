@@ -2,3 +2,5 @@
 
 data/
 logs/
+analysis/drive-qa.code-workspace
+evaluation_results/

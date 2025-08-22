@@ -14,6 +14,9 @@ DEFAULT_OUTPUT_DIR = "reports"
 SCENE_IDS = list(range(1, 7))  # Scenes 1-6
 DEFAULT_SCENE_COUNT = 6
 
+# Token mappings for scenes and keyframes (imported from parsers)
+from parsers.constants import SCENE_TOKEN_MAPPINGS, KEYFRAME_TOKEN_MAPPINGS
+
 # QA types
 QA_TYPES = ['perception', 'planning', 'prediction', 'behavior']
 

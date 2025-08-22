@@ -10,21 +10,28 @@ from typing import Dict, List, Any, Union, Optional
 from pathlib import Path
 from loguru import logger
 
+# Import token mappings from local constants
+from .constants import SCENE_TOKEN_MAPPINGS, KEYFRAME_TOKEN_MAPPINGS
+
 
 class DataLoader:
     """Load and parse concatenated JSON data with caching"""
     
-    def __init__(self, data_path: str = "data/concatenated_data/concatenated_data.json"):
+    def __init__(self, data_path: str = "data/concatenated_data/concatenated_data.json", validate_on_startup: bool = True):
         """
         Initialize the data loader.
         
         Args:
             data_path: Path to the concatenated JSON data file
+            validate_on_startup: Whether to validate constants against actual data on startup
         """
         self.data_path = self._assign_data_path(data_path)
         self._all_data_cache: Optional[Dict[str, Any]] = None
         self._scene_data_cache: Dict[str, Any] = {}
-        self._token_mappings_cache: Optional[Dict[str, Dict[int, str]]] = None
+        
+        # Validate constants against actual data on startup (optional)
+        if validate_on_startup:
+            self._validate_constants_on_startup()
         
     def _assign_data_path(self, data_path: str) -> str:
         """Assign data path"""
@@ -44,33 +51,15 @@ class DataLoader:
     
     def _get_token_mappings(self) -> Dict[str, Dict[int, str]]:
         """
-        Get cached token mappings for scenes and keyframes.
+        Get token mappings for scenes and keyframes from constants.
         
         Returns:
             Dictionary with scene and keyframe token mappings
         """
-        if self._token_mappings_cache is None:
-            all_data = self.load_all_data()
-            scene_tokens = list(all_data.keys())
-            
-            # Create scene token mappings
-            scene_serial_numbers = list(range(1, len(scene_tokens) + 1))
-            scene_mapping = dict(zip(scene_serial_numbers, scene_tokens))
-            
-            # Create keyframe token mappings for each scene
-            keyframe_mappings = {}
-            for scene_id, scene_token in scene_mapping.items():
-                scene_data = all_data[scene_token]
-                keyframe_tokens = list(scene_data['key_frames'].keys())
-                keyframe_serial_numbers = list(range(1, len(keyframe_tokens) + 1))
-                keyframe_mappings[scene_token] = dict(zip(keyframe_serial_numbers, keyframe_tokens))
-            
-            self._token_mappings_cache = {
-                'scenes': scene_mapping,
-                'keyframes': keyframe_mappings
-            }
-        
-        return self._token_mappings_cache
+        return {
+            'scenes': SCENE_TOKEN_MAPPINGS,
+            'keyframes': KEYFRAME_TOKEN_MAPPINGS
+        }
     
     def _assign_scene_token(self, scene_id) -> str:
         """
@@ -492,4 +481,107 @@ class DataLoader:
             'stopping_periods': stopping_periods,
             'total_duration': (movement_data[-1]['timestamp'] - movement_data[0]['timestamp']) / 1e6  # seconds
         }
+    
+    def _validate_constants_on_startup(self):
+        """
+        Validate that our hardcoded constants match the actual data structure.
+        This ensures data integrity and catches any mismatches early.
+        """
+        logger.info("Validating constants against actual data...")
+        
+        try:
+            # Load actual data
+            actual_data = self.load_all_data()
+            
+            # Validate scene tokens
+            self._validate_scene_tokens(actual_data)
+            
+            # Validate keyframe tokens
+            self._validate_keyframe_tokens(actual_data)
+            
+            # Validate data structure
+            self._validate_data_structure(actual_data)
+            
+            logger.info("✅ Constants validation passed - data integrity confirmed")
+            
+        except Exception as e:
+            logger.error(f"❌ Constants validation failed: {e}")
+            raise ValueError(f"Data integrity check failed: {e}")
+    
+    def _validate_scene_tokens(self, actual_data: Dict[str, Any]):
+        """Validate that all scene tokens in constants exist in actual data."""
+        actual_scene_tokens = set(actual_data.keys())
+        
+        for scene_id, expected_token in SCENE_TOKEN_MAPPINGS.items():
+            if expected_token not in actual_scene_tokens:
+                raise ValueError(
+                    f"Scene {scene_id} token '{expected_token}' not found in actual data. "
+                    f"Available tokens: {list(actual_scene_tokens)[:3]}..."
+                )
+        
+        logger.info(f"✅ Scene tokens validation passed - {len(SCENE_TOKEN_MAPPINGS)} scenes verified")
+    
+    def _validate_keyframe_tokens(self, actual_data: Dict[str, Any]):
+        """Validate that all keyframe tokens in constants exist in actual data."""
+        for scene_token, keyframe_mappings in KEYFRAME_TOKEN_MAPPINGS.items():
+            if scene_token not in actual_data:
+                raise ValueError(f"Scene token '{scene_token}' not found in actual data")
+            
+            actual_keyframes = set(actual_data[scene_token]['key_frames'].keys())
+            
+            for keyframe_id, expected_token in keyframe_mappings.items():
+                if expected_token not in actual_keyframes:
+                    raise ValueError(
+                        f"Keyframe {keyframe_id} token '{expected_token}' not found in scene '{scene_token}'. "
+                        f"Available keyframes: {list(actual_keyframes)[:3]}..."
+                    )
+            
+            # Validate keyframe count
+            expected_count = len(keyframe_mappings)
+            actual_count = len(actual_keyframes)
+            if expected_count != actual_count:
+                raise ValueError(
+                    f"Scene '{scene_token}' has {actual_count} keyframes in data but {expected_count} in constants"
+                )
+        
+        logger.info(f"✅ Keyframe tokens validation passed - all keyframes verified")
+    
+    def _validate_data_structure(self, actual_data: Dict[str, Any]):
+        """Validate that the data structure contains expected fields."""
+        required_fields = ['samples', 'key_frames', 'scene_name', 'scene_description']
+        
+        for scene_token, scene_data in actual_data.items():
+            for field in required_fields:
+                if field not in scene_data:
+                    raise ValueError(f"Scene '{scene_token}' missing required field: {field}")
+            
+            # Validate samples structure
+            for sample_token, sample_data in scene_data['samples'].items():
+                required_sample_fields = ['timestamp', 'sensor_data', 'annotations', 'ego_pose']
+                for field in required_sample_fields:
+                    if field not in sample_data:
+                        raise ValueError(f"Sample '{sample_token}' missing required field: {field}")
+            
+            # Validate keyframes structure
+            for keyframe_token, keyframe_data in scene_data['key_frames'].items():
+                required_keyframe_fields = ['QA', 'key_object_infos']
+                for field in required_keyframe_fields:
+                    if field not in keyframe_data:
+                        raise ValueError(f"Keyframe '{keyframe_token}' missing required field: {field}")
+        
+        logger.info("✅ Data structure validation passed - all required fields present")
+    
+    def validate_data_integrity(self) -> bool:
+        """
+        Manually trigger data integrity validation.
+        
+        Returns:
+            bool: True if validation passes, False otherwise
+        """
+        try:
+            self._validate_constants_on_startup()
+            return True
+        except Exception as e:
+            logger.error(f"Data integrity validation failed: {e}")
+            return False
     

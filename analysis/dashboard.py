@@ -14,7 +14,7 @@ from analysis.sensor_analyzer import SensorAnalyzer
 from analysis.predictor_analyzer import PredictorAnalyzer
 
 def main():
-    st.title("DriveLM QA Analysis Dashboard")
+    st.title(" Data Analysis Dashboard")
     
     # Initialize components
     data_loader = DataLoader()

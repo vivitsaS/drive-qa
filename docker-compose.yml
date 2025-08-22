@@ -1,23 +1,6 @@
 version: '3.8'
 
 services:
-  drivelm-analysis:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    container_name: drivelm-analysis
-    ports:
-      - "8501:8501"  # Streamlit dashboard
-    volumes:
-      # Mount data directory for persistent storage
-      - ./data:/app/data
-      # Mount logs directory
-      - ./logs:/app/logs
-    environment:
-      - PYTHONPATH=/app
-      - DATA_PATH=/app/data/concatenated_data/concatenated_data.json
-    command: ["full"]  # Run full analysis by default
-    
   drivelm-dashboard:
     build:
       context: .
@@ -32,19 +15,6 @@ services:
       - PYTHONPATH=/app
       - DATA_PATH=/app/data/concatenated_data/concatenated_data.json
     command: ["dashboard"]  # Run dashboard only
-    
-  drivelm-analysis-only:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    container_name: drivelm-analysis-only
-    volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-    environment:
-      - PYTHONPATH=/app
-      - DATA_PATH=/app/data/concatenated_data/concatenated_data.json
-    command: ["analysis"]  # Run analysis without dashboard
 
 # Optional: Add a volume for persistent data storage
 volumes:
